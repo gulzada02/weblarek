@@ -98,3 +98,102 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
+### Данные 
+#### Интерфейс продукта 
+`interface IProduct` {
+  id: string;
+  description: string;
+  image: string;
+  title: string;
+  category: string;
+  price: number | null;
+} 
+
+#### Класс Products
+Класс отвечает за хранение массива всех товаров приложения и за управление выбранным товаром для подробного отображения. Он предоставляет методы для доступа к данным товаров и управления ими.
+
+#### Конструктор:
+`constructor(products: IProduct[] = [])`
+`products: IProduct[]` — начальный массив товаров.
+
+#### Поля класса:
+`private products: IProduct[]` — массив всех товаров, доступных в магазине.
+
+### Методы:
+`setProducts(products: IProduct[]): void` — сохраняет массив товаров в модели.
+`getProducts(): IProduct[]` — возвращает массив всех товаров.
+`getProductById(id: string): IProduct | undefined` — возвращает товар по его id.
+
+#### Интерфейс элемента корзины с продуктами
+`interface CartItem` {
+  product: Product;        - Товар, добавленный в корзину
+  quantity: number;        - Количество товара
+}
+
+#### Класс Cart
+Класс отвечает за хранение товаров, которые пользователь добавил в корзину, и за управление ими: добавление, удаление, подсчет стоимости и количества товаров.
+
+#### Конструктор:
+`constructor()`
+Не принимает параметров. Инициализирует пустой массив корзины.
+
+#### Поля класса:
+`private items: IProduct[]` — массив товаров, выбранных пользователем для покупки.
+
+#### Методы:
+`getItems(): IProduct[]` — возвращает массив товаров в корзине.
+`addItem(product: IProduct): void` — добавляет товар в корзину.
+`removeItem(productId: string): void` — удаляет товар из корзины по id.
+`clear(): void` — очищает корзину полностью.
+`getTotalPrice(): number` — возвращает сумму цен всех товаров в корзине.
+`getItemCount(): number` — возвращает количество товаров в корзине.
+`hasItem(productId: string): boolean` — проверяет наличие товара в корзине по id.
+
+
+#### Интерфейс покупателя
+`interface IBuyer` {
+  payment: TPayment;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+#### Класс Buyer 
+Класс хранит данные покупателя, введённые при оформлении заказа, и обеспечивает их валидацию и сохранение.
+
+#### Конструктор:
+`constructor()`
+Не принимает параметров. Инициализирует поля пустыми значениями.
+
+#### Поля класса:
+`private payment: TPayment | null` — вид оплаты ('card' | 'cash').
+`private email: string` — почта покупателя.
+`private phone: string` — телефон покупателя.
+`private address: string` — адрес доставки.
+
+#### Методы:
+`setPayment(payment: TPayment): void` — сохраняет вид оплаты.
+`setEmail(email: string): void` — сохраняет email покупателя.
+`setPhone(phone: string): void` — сохраняет телефон покупателя.
+`setAddress(address: string): void` — сохраняет адрес доставки.
+`getData(): IBuyer` — возвращает объект со всеми данными покупателя.
+`clear(): void` — очищает все данные покупателя.
+`validate(): Partial<Record<keyof IBuyer, string>>` — проверяет корректность данных.
+Возвращает объект с ошибками по каждому полю, если оно пустое:
+{
+  payment: 'Не выбран вид оплаты',
+  email: 'Укажите email',
+}
+
+#### Слой коммуникации
+#### Класс ServerService 
+Взаимодействие с сервером, использует композицию: получает объект класса Api в конструкторе и использует его методы get и post для работы с сервером.
+
+#### Конструктор 
+`constructor(api: IApi)`
+`api: IApi` — объект для выполнения HTTP-запросов.
+#### класс API
+`private api: IApi — объект API` используемый для запросов.
+#### Методы:
+`fetchProducts(): Promise<IProduct[]>` — выполняет GET-запрос на и возвращает массив товаров.
+`sendOrder(order: IBuyer & { items: IProduct[] }): Promise<void>` — выполняет POST-запрос с данными о заказе.
