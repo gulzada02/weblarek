@@ -1,28 +1,31 @@
 import { IProduct } from '../../../types';
+import { EventEmitter } from '../Models/EventEmitter';
 
-export class Cart {
+export class Cart extends EventEmitter {
   private items: IProduct[] = [];
-
-  constructor() {
-    this.items = [];
-  }
 
   getItems(): IProduct[] {
     return this.items;
   }
 
   addItem(product: IProduct): void {
-    if (!this.hasItem(product.id)) {
-      this.items.push(product);
-    }
+    this.items.push(product);
+    this.emit('cart:change', this.items);
+    this.emit('cart:add', product);
   }
 
   removeItem(productId: string): void {
-    this.items = this.items.filter(item => item.id !== productId);
+    const index = this.items.findIndex(p => p.id === productId);
+    if (index !== -1) {
+      const removed = this.items.splice(index, 1)[0];
+      this.emit('cart:change', this.items);
+      this.emit('cart:remove', removed);
+    }
   }
 
   clear(): void {
     this.items = [];
+    this.emit('cart:change', this.items);
   }
 
   getTotalPrice(): number {
@@ -34,6 +37,9 @@ export class Cart {
   }
 
   hasItem(productId: string): boolean {
-    return this.items.some(item => item.id === productId);
+    return this.items.some(p => p.id === productId);
   }
 }
+
+
+

@@ -23,12 +23,23 @@ export interface IBuyer {
   address: string;
 }
 
+export interface productsApi {
+  total: number;
+  items: IProduct[];
+}
+
 export interface IProductResponse {
+  total: number;
   items: IProduct[];
 }
 
 export interface IOrderRequest {
   buyer: IBuyer;
   items: IProduct[];
+}
+
+export interface Order extends IBuyer {
+  items: string; 
+  total:number;
 }
 
