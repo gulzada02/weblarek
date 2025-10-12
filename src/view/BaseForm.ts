@@ -5,7 +5,7 @@ export abstract class BaseForm extends Component<any> {
 
   constructor(selector: string) {
     const formEl = document.querySelector<HTMLFormElement>(selector)!;
-    super(formEl); // передаем контейнер родителю
+    super(formEl); 
     this.form = formEl;
     this.form.addEventListener('submit', this.handleSubmit.bind(this));
   }

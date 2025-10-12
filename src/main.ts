@@ -11,7 +11,6 @@ import { Page } from "./components/Page";
 import { API_URL } from "./utils/constants";
 import { IProduct } from "./types";
 
-// Поиск основных элементов один раз
 const gallery = document.querySelector<HTMLElement>("main.gallery")!;
 const modalRoot = document.getElementById("modal-container") as HTMLElement;
 const modalContent = modalRoot.querySelector(".modal__content") as HTMLElement;
@@ -59,7 +58,6 @@ function renderGallery() {
     card.setTitle(p.title);
     card.setPrice(p.price);
     card.setCategory(p.category);
-  // Исправление: убираем ведущий слэш, если есть
   const img = p.image.startsWith('/') ? p.image.slice(1) : p.image;
   card.updateImage(img);
     return card.element;
@@ -77,7 +75,6 @@ function openProductPreview(product: IProduct) {
 
   card.setTitle(product.title);
   card.setPrice(product.price);
-  // Исправление: убираем ведущий слэш, если есть
   const img = product.image.startsWith('/') ? product.image.slice(1) : product.image;
   card.updateImage(img);
   card.setCategory(product.category);
