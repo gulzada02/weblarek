@@ -1,5 +1,5 @@
 import { EventEmitter } from '../Models/EventEmitter';
-import { IBuyer, TPayment } from '../../../types';
+import { IBuyer, TPayment } from '../../types';
 
 export class Buyer extends EventEmitter {
   private payment: TPayment | null = null;

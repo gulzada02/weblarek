@@ -1,9 +1,18 @@
 import { BaseCard } from './BaseCard'; 
-import { CDN_URL, categoryMap } from '../utils/constants'; 
+import { CDN_URL, categoryMap } from '../../utils/constants'; 
  
 type CategoryKey = keyof typeof categoryMap; 
  
 export class ProductCard extends BaseCard { 
+  private _CDN_URL = CDN_URL;
+  setCardImage(src: string) {
+    let url = src;
+    if (!src.endsWith('.png')) {
+      const dot = src.lastIndexOf('.');
+      url = dot !== -1 ? src.slice(0, dot) + '.png' : src + '.png';
+    }
+    this.setImage(this.image, this._CDN_URL + url, this.title.textContent || '');
+  }
   private title: HTMLElement; 
   private price: HTMLElement; 
   private image: HTMLImageElement; 
@@ -42,13 +51,6 @@ export class ProductCard extends BaseCard {
     } 
   } 
 } 
- 
- updateImage(productImage: string) {
-  const src = `${CDN_URL}/${productImage}`;
-  const alt = this.title.textContent || 'product';
-  super.setImage(this.image, src, alt);
-}
-
 
  setCategory(name: string) { 
   this.category.textContent = name; 
@@ -58,6 +60,4 @@ export class ProductCard extends BaseCard {
     this.category.classList.add(modifier); 
   }   
 } 
- 
- 
-} 
+}

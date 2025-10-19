@@ -9,7 +9,7 @@ export abstract class Component<T> {
     // Инструментарий для работы с DOM в дочерних компонентах
 
     // Установить изображение с альтернативным текстом
-    protected setImage(element: HTMLImageElement, src: string, alt?: string) {
+    protected setImage(element: HTMLImageElement, src: string, alt?: string):void {
         if (element) {
             element.src = src;
             if (alt) {

@@ -1,4 +1,4 @@
-import { Component } from "../components/base/Component";
+import { Component } from "../../base/Component";
 
 export abstract class BaseForm extends Component<any> {
   protected form: HTMLFormElement;

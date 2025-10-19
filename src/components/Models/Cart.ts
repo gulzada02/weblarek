@@ -1,4 +1,4 @@
-import { IProduct } from '../../../types';
+import { IProduct } from '../../types';
 import { EventEmitter } from '../Models/EventEmitter';
 
 export class Cart extends EventEmitter {

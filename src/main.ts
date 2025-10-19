@@ -1,273 +1,191 @@
 import "./scss/styles.scss";
-import { Products } from "./components/base/Models/Products";
-import { Cart } from "./components/base/Models/Cart";
-import { Buyer } from "./components/base/Models/Buyer";
+import { Products } from "./components/Models/Products";
+import { Cart } from "./components/Models/Cart";
+import { Buyer } from "./components/Models/Buyer";
 import { apiProducts } from "./utils/data";
-import { ServerService } from "./components/base/Models/ServerService";
+import { ServerService } from "./components/Models/ServerService";
 import { Api } from "./components/base/Api";
-import { ProductCard } from "./view/ProductCard";
-import { Modal } from "./view/Modal";
-import { Page } from "./components/Page";
-import { API_URL } from "./utils/constants";
+import { ProductCard } from "./components/view/ProductCard";
+import { Modal } from "./components/view/Modal";
+import { Page } from "./components/view/Page";
+import { API_URL, CDN_URL } from "./utils/constants"; 
 import { IProduct } from "./types";
 
-const gallery = document.querySelector<HTMLElement>("main.gallery")!;
+// DOM элементы
 const modalRoot = document.getElementById("modal-container") as HTMLElement;
 const modalContent = modalRoot.querySelector(".modal__content") as HTMLElement;
 const headerBasketBtn = document.querySelector<HTMLElement>(".header__basket")!;
-const headerBasketCounter = document.querySelector<HTMLElement>(
-  ".header__basket-counter"
-)!;
+const headerBasketCounter = document.querySelector<HTMLElement>(".header__basket-counter")!;
+const gallery = document.querySelector<HTMLElement>("main.gallery")!;
 
+// Модели и сервисы
 const modal = new Modal("#modal-container");
 const page = new Page<unknown>(document.body, modal);
+const productsModel = new Products();
+const cartModel = new Cart();
+const buyerModel = new Buyer();
+const api = new Api(API_URL);
+const serverService = new ServerService(api);
 
-function cloneTemplate(id: string): HTMLElement {
-  const tpl = document.getElementById(id) as HTMLTemplateElement | null;
-  if (!tpl) throw new Error(`Template #${id} not found`);
-  return tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
-}
 
-modalRoot
-  .querySelector(".modal__close")
-  ?.addEventListener("click", () => modal.close());
+// Закрытие модалки по клику
+modalRoot.querySelector(".modal__close")?.addEventListener("click", () => modal.close());
 modalRoot.addEventListener("click", (e) => {
   if (e.target === modalRoot) modal.close();
 });
 
-//models & service
-const productsModel = new Products();
-const cartModel = new Cart();
-const buyerModel = new Buyer();
+// --- Главный контроллер приложения ---
+const app = {
+  updateHeaderCounter: () => {
+    headerBasketCounter.textContent = String(cartModel.getItemCount());
+  },
 
-const api = new Api(API_URL);
-const serverService = new ServerService(api);
+  renderGallery: () => {
+    page.renderGallery(productsModel, gallery, app.openProductPreview);
+  },
 
-//UI update helpers
-function updateHeaderCounter() {
-  headerBasketCounter.textContent = String(cartModel.getItemCount());
-}
+  openProductPreview: (product: IProduct) => {
+    const template = page.cloneTemplate("card-preview");
+    const card = new ProductCard(template, () => {});
 
-// render gallery changes
-function renderGallery() {
-  const products = productsModel.getProducts();
+    card.setTitle(product.title);
+    card.setPrice(product.price);
+    
+    // корректный путь к картинке через CDN_URL
+    const img = product.image.startsWith('/') ? CDN_URL + product.image : product.image;
+    card.setCardImage(img);
+    card.setCategory(product.category);
 
-  const nodes: HTMLElement[] = products.map((p) => {
-    const template = document.getElementById("card-catalog") as HTMLTemplateElement;
-    const card = new ProductCard(template, () => openProductPreview(p));
-    card.setTitle(p.title);
-    card.setPrice(p.price);
-    card.setCategory(p.category);
-  const img = p.image.startsWith('/') ? p.image.slice(1) : p.image;
-  card.updateImage(img);
-    return card.element;
-  });
+    const text = card.element.querySelector(".card__text") as HTMLElement | null;
+    const btn = card.element.querySelector(".card__button") as HTMLButtonElement | null;
+    if (text) text.textContent = product.description;
 
-  gallery.replaceChildren(...nodes);
-}
-
-//product preview
-function openProductPreview(product: IProduct) {
-  const template = document.getElementById(
-    "card-preview"
-  ) as HTMLTemplateElement;
-  const card = new ProductCard(template, () => {});
-
-  card.setTitle(product.title);
-  card.setPrice(product.price);
-  const img = product.image.startsWith('/') ? product.image.slice(1) : product.image;
-  card.updateImage(img);
-  card.setCategory(product.category);
-
-  const text = card.element.querySelector(".card__text") as HTMLElement | null;
-  const btn = card.element.querySelector(".card__button") as HTMLButtonElement | null;
-
-  if (text) text.textContent = product.description;
-
-  if (btn && product.price !== null) {
-    if (cartModel.hasItem(product.id)) {
-      btn.textContent = "Удалить из корзины";
-      btn.addEventListener("click", () => {
-        cartModel.removeItem(product.id);
-        page.closePreviewModal();
-      });
-    } else {
-      btn.textContent = "В корзину";
-      btn.addEventListener("click", () => {
-        cartModel.addItem(product);
-        page.closePreviewModal();
-      });
-    }
-  }
-
-  page.openPreviewModal(card.element);
-}
-
-//open cart modal
-function openCart() {
-  const basket = cloneTemplate("basket");
-  const list = basket.querySelector(".basket__list") as HTMLElement;
-  const priceEl = basket.querySelector(".basket__price") as HTMLElement;
-  const orderBtn = basket.querySelector(".basket__button") as HTMLButtonElement;
-
-  const items = cartModel.getItems();
-  if (items.length === 0) {
-    list.textContent = "Корзина пуста";
-    orderBtn.disabled = true;
-    if (priceEl) priceEl.textContent = "0 синапсов";
-  } else {
-    list.replaceChildren();
-    items.forEach((it, idx) => {
-      const li = cloneTemplate("card-basket");
-      const indexEl = li.querySelector(
-        ".basket__item-index"
-      ) as HTMLElement | null;
-      const titleEl = li.querySelector(".card__title") as HTMLElement | null;
-      const priceItemEl = li.querySelector(
-        ".card__price"
-      ) as HTMLElement | null;
-      const delBtn = li.querySelector(
-        ".basket__item-delete"
-      ) as HTMLButtonElement | null;
-
-      if (indexEl) indexEl.textContent = String(idx + 1);
-      if (titleEl) titleEl.textContent = it.title;
-      if (priceItemEl)
-        priceItemEl.textContent = `${it.price ?? "н/д"} синапсов`;
-      if (delBtn) {
-        delBtn.addEventListener("click", () => {
-          cartModel.removeItem(it.id);
+    if (btn && product.price !== null) {
+      if (cartModel.hasItem(product.id)) {
+        btn.textContent = "Удалить из корзины";
+        btn.addEventListener("click", () => {
+          cartModel.removeItem(product.id);
+          page.closePreviewModal();
+        });
+      } else {
+        btn.textContent = "В корзину";
+        btn.addEventListener("click", () => {
+          cartModel.addItem(product);
+          page.closePreviewModal();
         });
       }
+    }
 
-      list.appendChild(li);
+    page.openPreviewModal(card.element);
+  },
+
+  openCart: () => {
+    const basket = page.cloneTemplate("basket");
+    const list = basket.querySelector(".basket__list") as HTMLElement;
+    const priceEl = basket.querySelector(".basket__price") as HTMLElement;
+    const orderBtn = basket.querySelector(".basket__button") as HTMLButtonElement;
+
+    const items = cartModel.getItems();
+    if (items.length === 0) {
+      list.textContent = "Корзина пуста";
+      orderBtn.disabled = true;
+      priceEl.textContent = "0 синапсов";
+    } else {
+      list.replaceChildren();
+      items.forEach((it, idx) => {
+        const li = page.cloneTemplate("card-basket");
+        li.querySelector(".basket__item-index")!.textContent = String(idx + 1);
+        li.querySelector(".card__title")!.textContent = it.title;
+        
+        // --- ДОБАВЛЕНО --- путь к картинке в корзине, если есть img
+        const imgEl = li.querySelector("img") as HTMLImageElement | null;
+        if (imgEl && it.image) imgEl.src = it.image.startsWith('/') ? CDN_URL + it.image : it.image;
+
+        li.querySelector(".card__price")!.textContent = `${it.price ?? "н/д"} синапсов`;
+        li.querySelector(".basket__item-delete")!.addEventListener("click", () => {
+          cartModel.removeItem(it.id);
+        });
+        list.appendChild(li);
+      });
+      priceEl.textContent = `${cartModel.getTotalPrice()} синапсов`;
+      orderBtn.disabled = false;
+    }
+
+    orderBtn.addEventListener("click", () => app.openOrderForm(), { once: true });
+    page.openPreviewModal(basket);
+  },
+
+  openOrderForm: () => {
+    const orderNode = page.cloneTemplate("order");
+    const paymentButtons = Array.from(orderNode.querySelectorAll(".button.button_alt")) as HTMLButtonElement[];
+    const addressInput = orderNode.querySelector('input[name="address"]') as HTMLInputElement;
+    const nextBtn = orderNode.querySelector(".order__button") as HTMLButtonElement;
+    const errorsEl = orderNode.querySelector(".form__errors") as HTMLElement | null;
+
+    const current = buyerModel.getData();
+    if (current.address) addressInput.value = current.address;
+    if (current.payment) {
+      paymentButtons.forEach((b) => {
+        if (b.getAttribute("name") === current.payment) b.classList.add("button_alt-active");
+      });
+    }
+
+    const validate = () => {
+      const data = buyerModel.getData();
+      const valid = !!data.payment && !!addressInput.value.trim();
+      nextBtn.disabled = !valid;
+      if (errorsEl) errorsEl.textContent = "";
+    };
+
+    paymentButtons.forEach((btn) =>
+      btn.addEventListener("click", () => {
+        paymentButtons.forEach((b) => b.classList.remove("button_alt-active"));
+        btn.classList.add("button_alt-active");
+        buyerModel.setPayment(btn.getAttribute("name") as "card" | "cash");
+        validate();
+      })
+    );
+
+    addressInput.addEventListener("input", () => {
+      buyerModel.setAddress(addressInput.value);
+      validate();
     });
 
-    if (priceEl) priceEl.textContent = `${cartModel.getTotalPrice()} синапсов`;
-    orderBtn.disabled = false;
-  }
-
-  //order button opens order form
-  orderBtn.addEventListener(
-    "click",
-    () => {
-      openOrderForm();
-    },
-    { once: true }
-  );
-
-  page.openPreviewModal(basket);
-}
-
-//order form
-function openOrderForm() {
-  const orderNode = cloneTemplate("order");
-  const paymentButtons = Array.from(
-    orderNode.querySelectorAll(".button.button_alt")
-  ) as HTMLButtonElement[];
-  const addressInput = orderNode.querySelector(
-    'input[name="address"]'
-  ) as HTMLInputElement;
-  const nextBtn = orderNode.querySelector(
-    ".order__button"
-  ) as HTMLButtonElement;
-  const errorsEl = orderNode.querySelector(
-    ".form__errors"
-  ) as HTMLElement | null;
-
-  const current = buyerModel.getData();
-  if (current.address && addressInput) addressInput.value = current.address;
-  if (current.payment) {
-    paymentButtons.forEach((b) => {
-      if (b.getAttribute("name") === current.payment) {
-        b.classList.add("button_alt-active");
-      }
-    });
-  }
-
-  //payment selection
-  paymentButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      paymentButtons.forEach((b) => b.classList.remove("button_alt-active"));
-      btn.classList.add("button_alt-active");
-
-      const chosen = btn.getAttribute("name") as ("card" | "cash") | null;
-      if (chosen) buyerModel.setPayment(chosen);
-      checkStep1Validity();
-    });
-  });
-
-  //address input
-  addressInput.addEventListener("input", () => {
-    buyerModel.setAddress(addressInput.value);
-    checkStep1Validity();
-  });
-
-  function checkStep1Validity() {
-    const data = buyerModel.getData();
-    const valid =
-      !!data.payment &&
-      !!(addressInput.value && addressInput.value.trim().length > 0);
-    nextBtn.disabled = !valid;
-    if (errorsEl) errorsEl.textContent = "";
-  }
-
-  checkStep1Validity();
-
-  nextBtn.addEventListener(
-    "click",
-    (e) => {
+    nextBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      openContactsForm();
-    },
-    { once: true }
-  );
+      app.openContactsForm();
+    }, { once: true });
 
-  page.openPreviewModal(orderNode);
-}
+    validate();
+    page.openPreviewModal(orderNode);
+  },
 
-//contacts form
-function openContactsForm() {
-  const contactsNode = cloneTemplate("contacts");
-  const emailInput = contactsNode.querySelector(
-    'input[name="email"]'
-  ) as HTMLInputElement;
-  const phoneInput = contactsNode.querySelector(
-    'input[name="phone"]'
-  ) as HTMLInputElement;
-  const payBtn = contactsNode.querySelector(
-    'button[type="submit"]'
-  ) as HTMLButtonElement;
-  const errorsEl = contactsNode.querySelector(
-    ".form__errors"
-  ) as HTMLElement | null;
+  openContactsForm: () => {
+    const contactsNode = page.cloneTemplate("contacts");
+    const emailInput = contactsNode.querySelector('input[name="email"]') as HTMLInputElement;
+    const phoneInput = contactsNode.querySelector('input[name="phone"]') as HTMLInputElement;
+    const payBtn = contactsNode.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const errorsEl = contactsNode.querySelector(".form__errors") as HTMLElement | null;
 
-  const cur = buyerModel.getData();
-  if (cur.email && emailInput) emailInput.value = cur.email;
-  if (cur.phone && phoneInput) phoneInput.value = cur.phone;
+    const validate = () => {
+      const e = emailInput.value.trim();
+      const p = phoneInput.value.trim();
+      const valid = e.length > 0 && p.length > 0;
+      payBtn.disabled = !valid;
+      if (errorsEl) errorsEl.textContent = "";
+    };
 
-  function checkStep2Validity() {
-    const e = emailInput.value.trim();
-    const p = phoneInput.value.trim();
-    const valid = e.length > 0 && p.length > 0;
-    payBtn.disabled = !valid;
-    if (errorsEl) errorsEl.textContent = "";
-  }
+    emailInput.addEventListener("input", () => {
+      buyerModel.setEmail(emailInput.value);
+      validate();
+    });
+    phoneInput.addEventListener("input", () => {
+      buyerModel.setPhone(phoneInput.value);
+      validate();
+    });
 
-  emailInput.addEventListener("input", () => {
-    buyerModel.setEmail(emailInput.value);
-    checkStep2Validity();
-  });
-  phoneInput.addEventListener("input", () => {
-    buyerModel.setPhone(phoneInput.value);
-    checkStep2Validity();
-  });
-
-  payBtn.addEventListener(
-    "click",
-    async (ev) => {
-      ev.preventDefault();
-
+    payBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
       const errors = buyerModel.validate();
       if (Object.keys(errors).length > 0) {
         if (errorsEl) errorsEl.textContent = Object.values(errors).join("; ");
@@ -275,86 +193,48 @@ function openContactsForm() {
       }
 
       const total = cartModel.getTotalPrice();
-
-      /* const order: IOrderRequest = { 
-      buyer: buyerModel.getData(), 
-      items: cartModel.getItems() 
-    };*/
-
       try {
-        //await serverService.sendOrder(order);
         cartModel.clear();
         buyerModel.clear();
-        showSuccess(total);
+        app.showSuccess(total);
       } catch (err) {
-        console.error("Order send failed", err);
-        if (errorsEl)
-          errorsEl.textContent =
-            "Ошибка при отправке заказа. Попробуйте позже.";
+        if (errorsEl) errorsEl.textContent = "Ошибка при отправке заказа.";
       }
-    },
-    { once: true }
-  );
+    }, { once: true });
 
-  page.openPreviewModal(contactsNode);
-}
+    validate();
+    page.openPreviewModal(contactsNode);
+  },
 
-function showSuccess(total: number) {
-  const node = cloneTemplate("success");
-  const description = node.querySelector(
-    ".order-success__description"
-  ) as HTMLElement | null;
-  const closeBtn = node.querySelector(
-    ".order-success__close"
-  ) as HTMLButtonElement | null;
-
-  if (description) {
-    description.textContent = `Списано ${total.toLocaleString(
-      "ru-RU"
-    )} синапсов`;
-  }
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
+  showSuccess: (total: number) => {
+    const node = page.cloneTemplate("success");
+    node.querySelector(".order-success__description")!.textContent = `Списано ${total.toLocaleString("ru-RU")} синапсов`;
+    node.querySelector(".order-success__close")!.addEventListener("click", () => {
       page.closePreviewModal();
-      renderGallery();
+      app.renderGallery();
     });
+    page.openPreviewModal(node);
   }
-  page.openPreviewModal(node);
-}
+};
 
-//model event
-productsModel.on("products:change", () => {
-  renderGallery();
-});
-
-productsModel.on("product:selected", (product: IProduct) => {
-  openProductPreview(product);
-});
-
+// Подписки на события моделей
+productsModel.on("products:change", app.renderGallery);
+productsModel.on("product:selected", app.openProductPreview);
 cartModel.on("cart:change", () => {
-  updateHeaderCounter();
-  if (
-    modalRoot.classList.contains("modal_active") &&
-    modalContent.querySelector(".basket")
-  ) {
-    openCart();
+  app.updateHeaderCounter();
+  if (modalRoot.classList.contains("modal_active") && modalContent.querySelector(".basket")) {
+    app.openCart();
   }
 });
-
 buyerModel.on("buyer:change", () => {});
 
-headerBasketBtn.addEventListener("click", () => openCart());
+// Открытие корзины
+headerBasketBtn.addEventListener("click", () => app.openCart());
 
-(async function loadCatalog() {
-  try {
-    const products = await serverService.fetchProducts();
-    productsModel.setProducts(products);
-  } catch (err) {
-    console.warn(
-      "Failed to fetch products from server, fallback to local data",
-      err
-    );
+// Загрузка каталога
+serverService.fetchProducts()
+  .then((products) => productsModel.setProducts(products))
+  .catch((err) => {
+    console.warn("Failed to fetch products, fallback to local data", err);
     productsModel.setProducts(apiProducts.items);
-  }
-})();
+  });
