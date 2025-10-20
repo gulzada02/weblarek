@@ -1,5 +1,5 @@
 import { EventEmitter } from "../base/Events";
-import { cloneTemplate } from "../../utils/utils";
+
 
 export class SuccessView {
   private container: HTMLElement;
@@ -10,7 +10,7 @@ export class SuccessView {
   private _totalPrice: number = 0;
 
   constructor(template: HTMLTemplateElement, events: EventEmitter) {
-    this.container = cloneTemplate(template);
+    this.container = (template);
     this.events = events;
 
     this.button = this.container.querySelector<HTMLButtonElement>('.success__button')!;

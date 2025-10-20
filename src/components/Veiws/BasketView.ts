@@ -1,5 +1,4 @@
 import { EventEmitter } from "../base/Events";
-import { IEvents } from "../base/Events";
 import { ensureElement } from "../../utils/utils";
 
 export class BasketView {

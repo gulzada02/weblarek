@@ -15,8 +15,12 @@ import { Buyer, TPayment } from './components/Models/Buyer';
 import { IProduct } from './types';
 
 // ================== API ==================
-import { Api } from './components/base/Api';
+import { Api, ApiClient} from './components/base/Api';
 const baseApi = new Api(import.meta.env.VITE_API_URL || API_URL);
+const apiClient = new ApiClient(baseApi)
+apiClient.getAllProducts()
+  .then(data => productsModel.setProducts(data))
+  .catch(error => console.error('Ошибка загрузки товаров:', error))
 
 // ================== VIEWS ==================
 import { GalleryView } from './components/Veiws/GalleryView';
