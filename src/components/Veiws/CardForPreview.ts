@@ -47,7 +47,7 @@ export class CardForPreview {
     this.imgEl.src = `${CDN_URL}/${product.image}`;
     this.imgEl.alt = product.title;
     this.titleEl.textContent = product.title;
-    this.categoryEl.textContent = categoryMap[product.category] || product.category;
+    this.categoryEl.textContent = categoryMap[product.category as keyof typeof categoryMap] || product.category;
     this.priceEl.textContent = product.price !== null ? `${product.price} ₽` : 'Нет в наличии';
 
     this.buttonEl.textContent = this._buttonText;

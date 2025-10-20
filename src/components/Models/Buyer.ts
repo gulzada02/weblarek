@@ -1,5 +1,7 @@
-import { EventEmitter } from '../Models/EventEmitter';
-import { IBuyer, TPayment } from '../../types';
+import { EventEmitter } from '../base/Events';
+import { IBuyer } from '../../types';
+
+export type TPayment = 'card' | 'cash';
 
 export class Buyer extends EventEmitter {
   private payment: TPayment | null = null;
@@ -9,26 +11,31 @@ export class Buyer extends EventEmitter {
 
   setPayment(payment: TPayment): void {
     this.payment = payment;
-    this.emit('buyer:change', this.getData());
+    this.emit('buyer:change', { field: 'payment' });
   }
 
   setEmail(email: string): void {
     this.email = email;
-    this.emit('buyer:change', this.getData());
+    this.emit('buyer:change', { field: 'email' });
   }
 
   setPhone(phone: string): void {
     this.phone = phone;
-    this.emit('buyer:change', this.getData());
+    this.emit('buyer:change', { field: 'phone' });
   }
 
   setAddress(address: string): void {
     this.address = address;
-    this.emit('buyer:change', this.getData());
+    this.emit('buyer:change', { field: 'address' });
   }
 
   getData(): IBuyer {
-    return { payment: this.payment, email: this.email, phone: this.phone, address: this.address };
+    return {
+      payment: this.payment,
+      email: this.email,
+      phone: this.phone,
+      address: this.address
+    };
   }
 
   clear(): void {
@@ -36,7 +43,7 @@ export class Buyer extends EventEmitter {
     this.email = '';
     this.phone = '';
     this.address = '';
-    this.emit('buyer:change', this.getData());
+    this.emit('buyer:change', { field: 'all' });
   }
 
   validate(): Partial<Record<keyof IBuyer, string>> {

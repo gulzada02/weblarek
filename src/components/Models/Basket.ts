@@ -1,31 +1,39 @@
 import { IProduct } from '../../types';
-import { EventEmitter } from './EventEmitter';
+import { EventEmitter } from '../base/Events'; // <-- было Events
 
-export class Basket extends EventEmitter {
+export class Basket extends EventEmitter { // <-- наследуемся от EventEmitter
   private items: IProduct[] = [];
-
-  getItems(): IProduct[] {
-    return this.items;
-  }
 
   addItem(product: IProduct): void {
     this.items.push(product);
-    this.emit('cart:change', this.items);
-    this.emit('cart:add', product);
+    this.emit('basket:listChange', {
+      purchases: this.items,
+      totalPrice: this.getTotalPrice(),
+      quantity: this.getItemCount()
+    });
+    this.emit('basket:add', product);
   }
 
   removeItem(productId: string): void {
     const index = this.items.findIndex(p => p.id === productId);
     if (index !== -1) {
       const removed = this.items.splice(index, 1)[0];
-      this.emit('cart:change', this.items);
-      this.emit('cart:remove', removed);
+      this.emit('basket:listChange', {
+        purchases: this.items,
+        totalPrice: this.getTotalPrice(),
+        quantity: this.getItemCount()
+      });
+      this.emit('basket:remove', removed);
     }
   }
 
   clear(): void {
     this.items = [];
-    this.emit('cart:change', this.items);
+    this.emit('basket:listChange', {
+      purchases: this.items,
+      totalPrice: 0,
+      quantity: 0
+    });
   }
 
   getTotalPrice(): number {
@@ -39,7 +47,8 @@ export class Basket extends EventEmitter {
   hasItem(productId: string): boolean {
     return this.items.some(p => p.id === productId);
   }
+
+  getItems(): IProduct[] {
+    return this.items;
+  }
 }
-
-
-

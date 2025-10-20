@@ -5,12 +5,12 @@ import { categoryMap, CDN_URL } from "../../utils/constants";
 
 export class CardForCatalog {
   private container: HTMLElement;
-  private events: EventEmitter;
   private imgEl: HTMLImageElement;
   private titleEl: HTMLElement;
   private categoryEl: HTMLElement;
   private priceEl: HTMLElement;
   private buttonEl: HTMLButtonElement;
+  private events: EventEmitter;
 
   constructor(template: HTMLTemplateElement, events: EventEmitter) {
     this.container = cloneTemplate(template);
@@ -26,8 +26,16 @@ export class CardForCatalog {
   }
 
   private addListeners() {
-    this.container.addEventListener('click', () => {
-      this.events.emit('product:select', { id: this.container.dataset.id });
+    // Клик по всей карточке для открытия модалки
+    this.container.addEventListener('click', (e) => {
+      const id = this.container.dataset.id;
+      if (!id) return;
+      // Если клик по кнопке "Купить", это отдельное событие
+      if (e.target === this.buttonEl && !this.buttonEl.disabled) {
+        this.events.emit('product:submit', { id });
+      } else {
+        this.events.emit('product:select', { id });
+      }
     });
   }
 
@@ -36,7 +44,7 @@ export class CardForCatalog {
     this.imgEl.src = `${CDN_URL}/${product.image}`;
     this.imgEl.alt = product.title;
     this.titleEl.textContent = product.title;
-    this.categoryEl.textContent = categoryMap[product.category] || product.category;
+    this.categoryEl.textContent = categoryMap[product.category as keyof typeof categoryMap] || product.category;
     this.priceEl.textContent = product.price !== null ? `${product.price} ₽` : 'Нет в наличии';
 
     this.buttonEl.disabled = product.price === null;

@@ -1,8 +1,8 @@
-import { IProduct } from "../../types";
 
 export class GalleryView {
   private container: HTMLElement;
   private _galleryList: HTMLElement[] = [];
+  
 
   constructor(container: HTMLElement) {
     this.container = container;
