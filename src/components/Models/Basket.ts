@@ -1,7 +1,7 @@
 import { IProduct } from '../../types';
-import { EventEmitter } from '../Models/EventEmitter';
+import { EventEmitter } from './EventEmitter';
 
-export class Cart extends EventEmitter {
+export class Basket extends EventEmitter {
   private items: IProduct[] = [];
 
   getItems(): IProduct[] {

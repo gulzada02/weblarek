@@ -1,4 +1,4 @@
-import { BaseForm } from './BaseForm'; 
+import { BaseForm } from '../Forms/BaseForm'; 
  
 export class OrderForm extends BaseForm { 
   protected handleSubmit(event: Event): void { 
