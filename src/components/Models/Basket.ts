@@ -1,35 +1,40 @@
 import { IProduct } from '../../types';
-import { EventEmitter } from '../base/Events'; // <-- было Events
+import { EventEmitter } from '../base/Events';
 
-export class Basket extends EventEmitter { // <-- наследуемся от EventEmitter
+export class Basket {
+  private events: EventEmitter;
   private items: IProduct[] = [];
+
+  constructor(events: EventEmitter) {
+    this.events = events;
+  }
 
   addItem(product: IProduct): void {
     this.items.push(product);
-    this.emit('basket:listChange', {
+    this.events.emit('basket:listChange', {
       purchases: this.items,
       totalPrice: this.getTotalPrice(),
       quantity: this.getItemCount()
     });
-    this.emit('basket:add', product);
+    this.events.emit('basket:add', product);
   }
 
   removeItem(productId: string): void {
     const index = this.items.findIndex(p => p.id === productId);
     if (index !== -1) {
       const removed = this.items.splice(index, 1)[0];
-      this.emit('basket:listChange', {
+      this.events.emit('basket:listChange', {
         purchases: this.items,
         totalPrice: this.getTotalPrice(),
         quantity: this.getItemCount()
       });
-      this.emit('basket:remove', removed);
+      this.events.emit('basket:remove', removed);
     }
   }
 
   clear(): void {
     this.items = [];
-    this.emit('basket:listChange', {
+    this.events.emit('basket:listChange', {
       purchases: this.items,
       totalPrice: 0,
       quantity: 0

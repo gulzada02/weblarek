@@ -16,7 +16,7 @@ import { IProduct } from './types';
 
 // ================== API ==================
 import { Api } from './components/base/Api';
-const baseApi = new Api(API_URL);
+const baseApi = new Api(import.meta.env.VITE_API_URL || API_URL);
 
 // ================== VIEWS ==================
 import { GalleryView } from './components/Veiws/GalleryView';
@@ -39,19 +39,21 @@ const formContactsTemplate = ensureElement<HTMLTemplateElement>("#contacts");
 const successTemplate = ensureElement<HTMLTemplateElement>("#success");
 const basketTemplate = ensureElement<HTMLTemplateElement>("#basket");
 
+
 // ================== ELEMENTS ==================
 const galleryElement = ensureElement<HTMLElement>(".gallery");
 const headerElement = ensureElement<HTMLElement>(".header");
 
 // ================== MODELS ==================
 const productsModel = new Products();
-const basketModel = new Basket();
+const basketModel = new Basket(events);
 const buyerModel = new Buyer();
 
 // ================== VIEWS ==================
 const galleryView = new GalleryView(galleryElement);
 const headerView = new HeaderView(headerElement, events);
-const modal = new Modal('#modal-container', events);const basketView = new BasketView(cloneTemplate(basketTemplate), events);
+const modal = new Modal('.modal__container', events);
+const basketView = new BasketView(cloneTemplate<HTMLDivElement>(basketTemplate), events);
 const successView = new SuccessView(cloneTemplate(successTemplate), events);
 const formOrderView = new FormOrderView(cloneTemplate(formOrderTemplate), events);
 const formContactsView = new FormContactsView(cloneTemplate(formContactsTemplate), events);
@@ -138,23 +140,23 @@ events.on('buyer:change', ({ field }: { field: keyof ReturnType<Buyer['getData']
 
   const selectedPayment = buyerModel.getData().payment;
 
-  if (field === 'payment' || field === 'address') {
-    const isValid = formOrderView.checkIsFormValid(errorsRecord);
-    formOrderView.toggleSubmitButton(isValid);
-    formOrderView.toggleErrorClass(!isValid);
-    if (selectedPayment) formOrderView.togglePaymentButtonStatus(selectedPayment);
-  } else if (field === 'email' || field === 'phone') {
-    const isValid = formContactsView.checkIsFormValid(errorsRecord);
-    formContactsView.toggleSubmitButton(isValid);
-    formContactsView.toggleErrorClass(!isValid);
-  }
+if (field === 'payment' || field === 'address') {
+  const isValid = formOrderView.checkIsFormValid(errorsRecord); 
+  formOrderView.toggleSubmitButton(isValid); 
+  if (selectedPayment) formOrderView.togglePaymentButtonStatus(selectedPayment);
+} else if (field === 'email' || field === 'phone') {
+  const isValid = formContactsView.checkIsFormValid(errorsRecord); 
+  formContactsView.toggleSubmitButton(isValid);
+}
+
+
 });
 
 events.on('form:contactsSubmit', () => {
   const buyerData = buyerModel.getData();
   const purchases = basketModel.getItems();
 
-  modal.setContent(document.createElement('div')); // loader
+  modal.setContent(document.createElement('div'));
 
   const orderData = {
     payment: buyerData.payment,
@@ -172,13 +174,12 @@ events.on('form:contactsSubmit', () => {
         buyerModel.clear();
         headerView.counter = basketModel.getItemCount();
         modal.setContent(successView.render());
-        formOrderView.resetFormState();
-        formContactsView.resetFormState();
+        formOrderView.reset();
+        formContactsView.reset();
       })
       .catch((err: unknown) => console.error('Не удалось разместить заказ: ', err));
   }, 1000);
 });
-
 // ================== SUCCESS ==================
 events.on('success:confirm', () => modal.close());
 

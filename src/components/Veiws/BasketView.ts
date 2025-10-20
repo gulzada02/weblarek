@@ -1,6 +1,6 @@
 import { EventEmitter } from "../base/Events";
-import { IProduct } from "../../types";
-import { cloneTemplate, ensureElement } from "../../utils/utils";
+import { IEvents } from "../base/Events";
+import { ensureElement } from "../../utils/utils";
 
 export class BasketView {
   private container: HTMLElement;
@@ -23,9 +23,11 @@ export class BasketView {
     this.emptyMessage = this.container.querySelector<HTMLElement>('.basket__empty')!;
 
     // Навешиваем обработчик на кнопку оформления заказа
+    this.submitButton = ensureElement<HTMLButtonElement>('.basket__button', this.container);
     this.submitButton.addEventListener('click', () => {
       this.events.emit('basket:placeOrder');
     });
+
   }
 
   // Рендер списка карточек корзины

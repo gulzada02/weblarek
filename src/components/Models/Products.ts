@@ -25,7 +25,7 @@ export class Products extends EventEmitter {
 
   setSelectedProduct(product: IProduct | null): void {
     this.selectedProduct = product;
-    this.emit('product:selected', product);
+    this.emit('product:selected', product ?? undefined);
   }
 
   getSelectedProduct(): IProduct | null {

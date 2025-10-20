@@ -1,28 +1,32 @@
+// BaseForm.ts
 import { Component } from "../../base/Component";
+import { ensureElement } from "../../../utils/utils";
 
 export abstract class BaseForm extends Component<any> {
-  protected form: HTMLFormElement;
-  protected submitButton: HTMLButtonElement;
+  public form: HTMLFormElement;
+  public submitButton: HTMLButtonElement;
 
   constructor(selector: string) {
-    const formEl = document.querySelector<HTMLFormElement>(selector)!;
+    const formEl = ensureElement<HTMLFormElement>(selector);
     super(formEl);
     this.form = formEl;
-    this.submitButton = this.form.querySelector('button[type="submit"]')!;
+
+    this.submitButton = ensureElement<HTMLButtonElement>('button[type="submit"]', this.form);
+
     this.form.addEventListener('submit', this.handleSubmit.bind(this));
   }
 
   protected abstract handleSubmit(event: Event): void;
 
-  protected checkIsFormValid(errors: Record<string, boolean>): boolean {
+  public checkIsFormValid(errors: Record<string, boolean>): boolean {
     return !Object.values(errors).some(Boolean);
   }
 
-  protected toggleSubmitButton(enabled: boolean): void {
+  public toggleSubmitButton(enabled: boolean): void {
     this.submitButton.disabled = !enabled;
   }
 
-  protected resetFormState(): void {
+  public resetFormState(): void {
     this.form.reset();
   }
 }

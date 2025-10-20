@@ -1,71 +1,46 @@
+import { BaseForm } from "../Forms/BaseForm";
 import { EventEmitter } from "../../base/Events";
-import { cloneTemplate } from "../../../utils/utils";
+import { ensureElement } from "../../../utils/utils";
 
-export class FormContactsView {
-  private container: HTMLElement;
+export class FormContactsView extends BaseForm {
   private events: EventEmitter;
   private emailInput: HTMLInputElement;
   private phoneInput: HTMLInputElement;
-  private submitButton: HTMLButtonElement;
 
-  constructor(template: HTMLTemplateElement, events: EventEmitter) {
-    this.container = cloneTemplate(template);
+  constructor(container: HTMLElement, events: EventEmitter) {
+    super('#contacts'); 
     this.events = events;
 
-    this.emailInput = this.container.querySelector<HTMLInputElement>('#contacts-email')!;
-    this.phoneInput = this.container.querySelector<HTMLInputElement>('#contacts-phone')!;
-    this.submitButton = this.container.querySelector<HTMLButtonElement>('#contacts-submit')!;
+    this.emailInput = ensureElement<HTMLInputElement>('#contacts-email', container);
+    this.phoneInput = ensureElement<HTMLInputElement>('#contacts-phone', container);
 
     this.addListeners();
   }
 
   private addListeners() {
-    // Слушаем изменение email
     this.emailInput.addEventListener('input', () => {
       this.events.emit('form:emailChanged', { email: this.emailInput.value });
     });
 
-    // Слушаем изменение телефона
     this.phoneInput.addEventListener('input', () => {
       this.events.emit('form:phoneChanged', { phone: this.phoneInput.value });
     });
-
-    // Слушаем сабмит формы
-    this.submitButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.events.emit('form:contactsSubmit');
-    });
   }
 
-  // Проверка валидности формы
-  checkIsFormValid(errors: Record<string, boolean>): boolean {
-    return !Object.values(errors).some(Boolean);
+  public handleSubmit(event: Event): void {
+    event.preventDefault();
+    this.events.emit('form:contactsSubmit');
   }
 
-  // Включение/отключение кнопки сабмита
-  toggleSubmitButton(isEnabled: boolean) {
-    this.submitButton.disabled = !isEnabled;
+  public validate(errors: Record<string, boolean>): boolean {
+  return this.checkIsFormValid(errors); 
   }
 
-  // Добавление/удаление класса ошибок
-  toggleErrorClass(hasError: boolean) {
-    if (hasError) {
-      this.container.classList.add('form--error');
-    } else {
-      this.container.classList.remove('form--error');
-    }
+  public setSubmitButton(enabled: boolean) {
+    this.toggleSubmitButton(enabled);
   }
 
-  // Сброс состояния формы
-  resetFormState() {
-    this.emailInput.value = '';
-    this.phoneInput.value = '';
-    this.toggleErrorClass(false);
-    this.toggleSubmitButton(false);
-  }
-
-  // Возвращает DOM элемента формы
-  render(): HTMLElement {
-    return this.container;
+  public reset(): void {
+    this.resetFormState();
   }
 }

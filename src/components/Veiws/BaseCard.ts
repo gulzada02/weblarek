@@ -1,14 +1,28 @@
-import { Component } from '../base/Component';
+import { EventEmitter } from "../base/Events";
+import { ensureElement } from "../../utils/utils";
 
-export abstract class BaseCard extends Component<any> {
-  protected _element: HTMLElement;
-  constructor(template: HTMLTemplateElement) {
-    const element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
-    super(element);
-    this._element = element;
+export abstract class BaseCard {
+  protected element: HTMLElement;
+  protected events: EventEmitter;
+
+  protected image!: HTMLImageElement;
+  protected title!: HTMLElement;
+  protected category!: HTMLElement;
+  protected price!: HTMLElement;
+
+  constructor(template: HTMLTemplateElement, events: EventEmitter) {
+    const first = template.content.firstElementChild;
+    if (!first || !(first instanceof HTMLElement)) {
+      throw new Error('Template must have an HTMLElement as its root element');
+    }
+
+    this.element = ensureElement<HTMLElement>(first);
+    this.events = events;
   }
 
-  public get element(): HTMLElement {
-    return this._element;
+  public getElement(): HTMLElement {
+    return this.element;
   }
+
+  public abstract render(data: any): HTMLElement;
 }

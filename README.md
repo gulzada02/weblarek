@@ -98,185 +98,279 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
-### Данные 
-#### Интерфейс продукта 
-`interface IProduct` {
+##  Архитектура
+
+Приложение разделено на три уровня:
+
+* **Models (модели данных)** — логика и хранение данных (`Products`, `Basket`, `Buyer`)
+* **Views (представления)** — интерфейс и шаблоны (`BaseCard`, `CardCatalog`, `CardPreview`, `CardBasket`, `Modal`, `Gallery`, `Success`)
+* **Controllers / main.ts** — связывает события и модели, управляет потоком данных
+
+---
+
+##  Интерфейсы
+
+### `IProduct`
+
+```ts
+interface IProduct {
   id: string;
   description: string;
   image: string;
   title: string;
   category: string;
   price: number | null;
-} 
-
-#### Класс Products
-Класс отвечает за хранение массива всех товаров приложения и за управление выбранным товаром для подробного отображения. Он предоставляет методы для доступа к данным товаров и управления ими.
-
-#### Конструктор:
-`constructor(products: IProduct[] = [])`
-`products: IProduct[]` — начальный массив товаров.
-
-#### Поля класса:
-`private products: IProduct[]` — массив всех товаров, доступных в магазине.
-
-#### Методы:
-`setProducts(products: IProduct[]): void` — сохраняет массив товаров в модели.
-`getProducts(): IProduct[]` — возвращает массив всех товаров.
-`getProductById(id: string): IProduct | undefined` — возвращает товар по его id.
-
-#### Интерфейс элемента корзины с продуктами
-`interface CartItem` {
-  product: Product;        - Товар, добавленный в корзину
-  quantity: number;        - Количество товара
 }
+```
 
-#### Класс Cart
-Класс отвечает за хранение товаров, которые пользователь добавил в корзину, и за управление ими: добавление, удаление, подсчет стоимости и количества товаров.
+### `BasketItem`
 
-#### Конструктор:
-`constructor()`
-Не принимает параметров. Инициализирует пустой массив корзины.
+```ts
+interface BasketItem {
+  product: Product;
+  quantity: number;
+}
+```
 
-#### Поля класса:
-`private items: IProduct[]` — массив товаров, выбранных пользователем для покупки.
+### `IBuyer`
 
-#### Методы:
-`getItems(): IProduct[]` — возвращает массив товаров в корзине.
-`addItem(product: IProduct): void` — добавляет товар в корзину.
-`removeItem(productId: string): void` — удаляет товар из корзины по id.
-`clear(): void` — очищает корзину полностью.
-`getTotalPrice(): number` — возвращает сумму цен всех товаров в корзине.
-`getItemCount(): number` — возвращает количество товаров в корзине.
-`hasItem(productId: string): boolean` — проверяет наличие товара в корзине по id.
-
-
-#### Интерфейс покупателя
-`interface IBuyer` {
+```ts
+interface IBuyer {
   payment: TPayment;
   email: string;
   phone: string;
   address: string;
 }
+```
 
-#### Класс Buyer 
-Класс хранит данные покупателя, введённые при оформлении заказа, и обеспечивает их валидацию и сохранение.
+---
 
-#### Конструктор:
-`constructor()`
-Не принимает параметров. Инициализирует поля пустыми значениями.
+##  Классы
 
-#### Поля класса:
-`private payment: TPayment | null` — вид оплаты ('card' | 'cash').
-`private email: string` — почта покупателя.
-`private phone: string` — телефон покупателя.
-`private address: string` — адрес доставки.
+### **Products**
 
-#### Методы:
-`setPayment(payment: TPayment): void` — сохраняет вид оплаты.
-`setEmail(email: string): void` — сохраняет email покупателя.
-`setPhone(phone: string): void` — сохраняет телефон покупателя.
-`setAddress(address: string): void` — сохраняет адрес доставки.
-`getData(): IBuyer` — возвращает объект со всеми данными покупателя.
-`clear(): void` — очищает все данные покупателя.
-`validate(): Partial<Record<keyof IBuyer, string>>` — проверяет корректность данных.
-Возвращает объект с ошибками по каждому полю, если оно пустое:
-{
-  payment: 'Не выбран вид оплаты',
-  email: 'Укажите email',
+Модель для работы с товарами.
+
+```ts
+class Products {
+  private products: IProduct[];
+
+  constructor(products: IProduct[] = []) { ... }
+
+  setProducts(products: IProduct[]): void;
+  getProducts(): IProduct[];
+  getProductById(id: string): IProduct | undefined;
 }
+```
 
-#### Слой коммуникации
-#### Класс ServerService 
-Взаимодействие с сервером, использует композицию: получает объект класса Api в конструкторе и использует его методы get и post для работы с сервером.
+---
 
-#### Конструктор 
-`constructor(api: IApi)`
-`api: IApi` — объект для выполнения HTTP-запросов.
-#### класс API
-`private api: IApi — объект API` используемый для запросов.
-#### Методы:
-`fetchProducts(): Promise<IProduct[]>` — выполняет GET-запрос на и возвращает массив товаров.
-`sendOrder(order: IBuyer & { items: IProduct[] }): Promise<void>` — выполняет POST-запрос с данными о заказе.
+### **Basket**
 
+Модель корзины пользователя.
 
-### Классы карточек 
-Общий родительский класс. Карточки товаров отображаются в разных состояниях: в каталоге, в корзине и в модальном окне предпросмотра.
-#### Класс BaseCard 
-Базовый класс для всех карточек 
-#### Конструктор
-`constructor(templateId: string)` — принимает идентификатор шаблона карточки.
-#### Поля:
-`protected element: HTMLElement` — DOM-элемент карточки.
-`protected title: HTMLElement` — заголовок товара.
-`protected price: HTMLElement` — цена товара.
-`protected category: HTMLElement` — категория товара.
-`protected image: HTMLImageElement` — изображение товара.
-#### Методы:
-`render(data: IProduct): HTMLElement` — заполняет данные карточки и возвращает готовый элемент.
-`setText(element: HTMLElement, text: string): void` — утилитарный метод для записи текста.
-`setImage(element: HTMLImageElement, src: string, alt?: string): void` — утилитарный метод для установки изображения.
-#### Класс CardCatalog
-Наследуется от: BaseCard
-Отображает карточку товара на странице каталога.
-Содержит обработчик клика для открытия предпросмотра.
-Добавляет событие `card:select` при нажатии на карточку.
-#### Класс CardPreview
-Наследуется от: BaseCard
-Отображает детальную карточку товара в модальном окне.
-Добавляет кнопку «В корзину» и отображает описание товара.
-Вызывает событие `cart:add` при клике на кнопку.
-#### Класс CardBasket
-Наследуется от: BaseCard
-Отображает компактную карточку товара внутри корзины.
-Содержит кнопку удаления.
-Вызывает событие `cart:remove` при клике на кнопку удаления.
+```ts
+class Basket {
+  private items: IProduct[];
 
-### Классы форм
-Формы для ввода данных при оформлении заказа.
-логика (валидация, получение данных, блокировка кнопки) вынесена в родительский класс.
-#### Класс BaseForm
-Базовый класс для всех форм. Обработка полей ввода, валидацию и сбор данных.
-#### Конструктор
-`constructor(formElement: HTMLFormElement)` — принимает ссылку на DOM-элемент формы.
-#### Методы
-`getFormData(): Record<string, string>` — возвращает объект с введёнными данными.
-`validate(): boolean` — проверяет корректность заполнения полей.
-`setErrors(errors: Record<string, string>): void` — отображает ошибки в интерфейсе.
-`clear(): void` — очищает форму.
-#### Класс OrderForm
-Наследуется от: BaseForm
-Отвечает за выбор способа оплаты и ввод адреса доставки.
-Вызывает событие `order:submit` после успешной валидации.
-#### Класс ContactsForm
-Наследуется от: BaseForm
-Отвечает за ввод контактных данных (email и телефона).
-Вызывает событие `contacts:submit` при успешной отправке.
+  constructor() { ... }
 
-### Класс Modal
-Отвечает за открытие, закрытие и отображение любого переданного контента.
-Модальное окно не имеет наследников — оно универсально и служит контейнером для любых компонентов.
-#### Конструктор
-`constructor(container: HTMLElement)`
-#### Методы
-`open(content: HTMLElement): void` — открывает окно с переданным контентом.
-`close(): void` — закрывает окно.
-`setContent(content: HTMLElement): void` — заменяет содержимое окна.
-Модальное окно может отображать любую разметку — карточку, форму, сообщение и т.д.
-Все компоненты, которые отображаются в модальном окне, реализованы как самостоятельные классы.
-#### Класс Gallery
-Отвечает за отображение списка карточек на странице.
-Используется для подстановки карточек в контейнер `<main class="gallery"></main>`
-#### Конструктор
-`constructor(container: HTMLElement)` — принимает ссылку на контейнер галереи.
-#### Методы
-`render(cards: HTMLElement[]): void` — заменяет содержимое галереи новыми карточками.
-`clear(): void` — очищает содержимое галереи.
-#### Класс Success
-Компонент для отображения успешного оформления заказа.
-Использует шаблон `<template id="success">`
-Вызывает событие `order:close` при нажатии на кнопку «За новыми покупками!».
+  getItems(): IProduct[];
+  addItem(product: IProduct): void;
+  removeItem(productId: string): void;
+  clear(): void;
+  getTotalPrice(): number;
+  getItemCount(): number;
+  hasItem(productId: string): boolean;
+}
+```
 
-### События 
+---
+
+### **Buyer**
+
+Хранит и валидирует данные покупателя.
+
+```ts
+class Buyer {
+  private payment: TPayment | null;
+  private email: string;
+  private phone: string;
+  private address: string;
+
+  constructor() { ... }
+
+  setPayment(payment: TPayment): void;
+  setEmail(email: string): void;
+  setPhone(phone: string): void;
+  setAddress(address: string): void;
+  getData(): IBuyer;
+  clear(): void;
+  validate(): Partial<Record<keyof IBuyer, string>>;
+}
+```
+
+---
+
+### **ServerService**
+
+Слой взаимодействия с сервером.
+
+```ts
+class ServerService {
+  constructor(private api: IApi) {}
+
+  fetchProducts(): Promise<IProduct[]>;
+  sendOrder(order: IBuyer & { items: IProduct[] }): Promise<void>;
+}
+```
+
+---
+
+### **BaseCard**
+
+Базовый класс для карточек товаров.
+
+```ts
+class BaseCard {
+  protected element: HTMLElement;
+  protected title: HTMLElement;
+  protected price: HTMLElement;
+  protected category: HTMLElement;
+  protected image: HTMLImageElement;
+
+  constructor(templateId: string) { ... }
+
+  render(data: IProduct): HTMLElement;
+  setText(element: HTMLElement, text: string): void;
+  setImage(element: HTMLImageElement, src: string, alt?: string): void;
+}
+```
+
+#### **CardCatalog**
+
+Наследник BaseCard.
+Отображает карточку товара в каталоге и генерирует событие `card:select` при клике.
+
+#### **CardPreview**
+
+Наследник BaseCard.
+Отображает карточку в модальном окне, добавляет описание и кнопку «В корзину».
+Генерирует событие `basket:add`.
+
+#### **CardBasket**
+
+Наследник BaseCard.
+Отображает карточку товара в корзине, добавляет кнопку удаления.
+Генерирует событие `basket:remove`.
+
+---
+
+### **BaseForm**
+
+Родительский класс для всех форм.
+
+```ts
+class BaseForm {
+  constructor(formElement: HTMLFormElement) { ... }
+
+  getFormData(): Record<string, string>;
+  validate(): boolean;
+  setErrors(errors: Record<string, string>): void;
+  clear(): void;
+}
+```
+
+#### **OrderForm**
+
+Отвечает за выбор способа оплаты и ввод адреса.
+После успешной проверки вызывает `order:submit`.
+
+#### **ContactsForm**
+
+Обрабатывает ввод email и телефона.
+После успешной проверки вызывает `contacts:submit`.
+
+---
+
+### **Modal**
+
+Контейнер для отображения любого контента.
+
+```ts
+class Modal {
+  constructor(container: HTMLElement) {}
+
+  open(content: HTMLElement): void;
+  close(): void;
+  setContent(content: HTMLElement): void;
+}
+```
+
+---
+
+### **Gallery**
+
+Компонент для отображения списка карточек.
+
+```ts
+class Gallery {
+  constructor(container: HTMLElement) {}
+
+  render(cards: HTMLElement[]): void;
+  clear(): void;
+}
+```
+
+---
+
+### **Success**
+
+Компонент для отображения успешного заказа.
+Использует шаблон `<template id="success">`.
+Генерирует событие `order:close` при нажатии на кнопку «За новыми покупками!».
+
+---
+
+## Событийная модель
+
+Все компоненты связаны через экземпляр `EventEmitter`.
+
+### Основные события:
+
+| Событие           | Описание                          |
+| ----------------- | --------------------------------- |
+| `card:select`     | Открытие карточки в предпросмотре |
+| `basket:add`        | Добавление товара в корзину       |
+| `basket:remove`     | Удаление товара из корзины        |
+| `order:submit`    | Отправка формы заказа             |
+| `contacts:submit` | Отправка контактной формы         |
+| `modal:close`     | Закрытие модального окна          |
+| `order:close`     | Завершение оформления заказа      |
+
+-
+
+```ts
+import { Products } from './components/Models/Products';
+import { Basket } from './components/Models/Basket';
+import { Buyer } from './components/Models/Buyer';
+import { ServerService } from './components/Models/ServerService';
+import { Modal } from './components/View/Modal';
+import { Gallery } from './components/View/Gallery';
+import { EventEmitter } from './components/base/Events';
+import { Api } from './components/base/Api';
+
+const events = new EventEmitter();
+const api = new Api();
+const server = new ServerService(api);
+const products = new Products();
+const basket = new Basket();
+const buyer = new Buyer();
+
+const modal = new Modal(document.getElementById('modal-container')!);
+const gallery = new Gallery(document.querySelector('main.gallery')!);
+```
+
 #### Модальное окно (Modal)
 Назначение: отображение всплывающих окон для просмотра товара, корзины, оформления заказа, сообщений об успехе.
 CSS-модификаторы:
@@ -303,8 +397,8 @@ CSS-модификаторы:
 `buttonElement` — кнопка «В корзину» или «Удалить из корзины» .card__button.
 ##### События:
 `click`	Пользователь кликнул на карточку (просмотр подробностей).
-`add-to-cart`	Пользователь нажал кнопку «В корзину».
-`remove-from-cart`	Пользователь нажал кнопку «Удалить из корзины».
+`add-to-basket`	Пользователь нажал кнопку «В корзину».
+`remove-from-basket`	Пользователь нажал кнопку «Удалить из корзины».
 #### Форма выбора оплаты (OrderForm)
 Назначение: выбор способа оплаты и адреса доставки на первом шаге оформления заказа.
 ##### CSS-модификаторы:

@@ -1,58 +1,54 @@
-import { EventEmitter } from "../base/Events";
 import { IProduct } from "../../types";
-import { cloneTemplate } from "../../utils/utils";
+import { EventEmitter } from "../base/Events";
+import { ensureElement } from "../../utils/utils";
 import { categoryMap, CDN_URL } from "../../utils/constants";
+import { BaseCard } from "./BaseCard";
 
-export class CardForPreview {
-  private container: HTMLElement;
-  private events: EventEmitter;
-  private imgEl: HTMLImageElement;
-  private titleEl: HTMLElement;
-  private categoryEl: HTMLElement;
-  private priceEl: HTMLElement;
-  private buttonEl: HTMLButtonElement;
+export class CardForPreview extends BaseCard {
+  private button: HTMLButtonElement;
   private _buttonText: string = 'Купить';
 
   constructor(template: HTMLTemplateElement, events: EventEmitter) {
-    this.container = cloneTemplate(template);
-    this.events = events;
+    super(template, events);
 
-    this.imgEl = this.container.querySelector<HTMLImageElement>('.card__img')!;
-    this.titleEl = this.container.querySelector<HTMLElement>('.card__title')!;
-    this.categoryEl = this.container.querySelector<HTMLElement>('.card__category')!;
-    this.priceEl = this.container.querySelector<HTMLElement>('.card__price')!;
-    this.buttonEl = this.container.querySelector<HTMLButtonElement>('.card__btn')!;
+    this.image = ensureElement<HTMLImageElement>('.card__image', this.element);
+    this.title = ensureElement<HTMLElement>('.card__title', this.element);
+    this.category = ensureElement<HTMLElement>('.card__category', this.element);
+    this.price = ensureElement<HTMLElement>('.card__price', this.element);
+    this.button = ensureElement<HTMLButtonElement>('.card__button', this.element);
 
     this.addListeners();
   }
 
   private addListeners() {
-    this.buttonEl.addEventListener('click', () => {
-      const productId = this.container.dataset.id!;
+    this.button.addEventListener('click', (e) => {
+      e.stopPropagation(); 
+      const productId = this.element.dataset.id!;
       this.events.emit('product:submit', { id: productId });
     });
   }
 
   public toggleButtonState(enabled: boolean) {
-    this.buttonEl.disabled = !enabled;
+    this.button.disabled = !enabled;
   }
 
   set buttonText(text: string) {
     this._buttonText = text;
-    this.buttonEl.textContent = text;
+    this.button.textContent = text;
   }
 
   public render(product: IProduct): HTMLElement {
-    this.container.dataset.id = product.id;
-    this.imgEl.src = `${CDN_URL}/${product.image}`;
-    this.imgEl.alt = product.title;
-    this.titleEl.textContent = product.title;
-    this.categoryEl.textContent = categoryMap[product.category as keyof typeof categoryMap] || product.category;
-    this.priceEl.textContent = product.price !== null ? `${product.price} ₽` : 'Нет в наличии';
+    this.element.dataset.id = product.id;
 
-    this.buttonEl.textContent = this._buttonText;
-    this.buttonEl.disabled = product.price === null;
+    this.image.src = `${CDN_URL}/${product.image}`;
+    this.image.alt = product.title;
+    this.title.textContent = product.title;
+    this.category.textContent = categoryMap[product.category as keyof typeof categoryMap] || product.category;
+    this.price.textContent = product.price !== null ? `${product.price} синапсов` : 'Нет в наличии';
 
-    return this.container;
+    this.button.textContent = this._buttonText;
+    this.button.disabled = product.price === null;
+
+    return this.element;
   }
 }
