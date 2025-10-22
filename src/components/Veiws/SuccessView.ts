@@ -1,4 +1,3 @@
-import { EventEmitter } from "../base/Events";
 import { Component } from "../base/Component";
 import { ensureElement } from "../../utils/utils";
 import { AppEvents } from "../../utils/constants";

@@ -1,12 +1,18 @@
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 export type TPayment = 'card' | 'cash' | null;
-// export type TProductsResponse = IApiResponse<IProduct>
+export type TProductsResponse = IApiResponse<IProduct>;
 
 export interface IApi {
-    get<T extends object>(uri: string): Promise<T>;
-    post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
+  get<T>(url: string): Promise<T>;
+  post<T>(url: string, data: unknown): Promise<T>;
+  put<T>(url: string, data: unknown): Promise<T>;
+  delete<T>(url: string): Promise<T>;
 }
 
+export interface IApiResponse<T> {
+  total: number;
+  items: T[];
+}
 
 export interface IProduct {
   id: string;
@@ -51,8 +57,6 @@ export interface IValidationErrors {
   address?: string;
 }
 
-
-// ------------ View ------------
 export interface IHeaderData {
   counter: number
 }
@@ -78,3 +82,18 @@ export interface IBasketViewData {
   totalPrice: number
   emptyMessage: HTMLElement
 }
+
+export type TOrder = {
+  payment: TPayment,
+  email: string,
+  phone: string,
+  address: string,
+  total: number,
+  items: string[],
+}
+
+export type TOrderResponse = {
+  id: string;
+  total: number;
+}
+

@@ -1,5 +1,5 @@
 import { BaseForm } from "../Forms/BaseForm";
-import { EventEmitter, IEvents } from "../../base/Events";
+import { IEvents } from "../../base/Events";
 import { ensureElement } from "../../../utils/utils";
 import { TPayment } from "../../../types";
 import { IValidationErrors } from "../../../types";
@@ -17,7 +17,6 @@ export class FormOrderView<T> extends BaseForm<T> {
     this._cashPayButton = ensureElement<HTMLButtonElement>('[name="cash"]', container)
     this._address = ensureElement<HTMLInputElement>('[name="address"]', container)
 
-    // ------------ LISTENERS ------------
     this._cardPayButton.addEventListener('click', () => {
       this.events.emit(AppEvents.FORM_PAYMENT_CHANGED, { payment: 'card' })
     })
