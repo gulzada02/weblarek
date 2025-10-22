@@ -15,9 +15,9 @@ export class GalleryView {
   }
 
   // Получение текущих карточек
-  get galleryList(): HTMLElement[] {
-    return this._galleryList;
-  }
+  // get galleryList(): HTMLElement[] {
+  //   return this._galleryList;
+  // }
 
   // Метод рендера
   render(): void {

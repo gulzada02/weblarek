@@ -13,7 +13,6 @@ export class ServerService {
   return Array.isArray(response) ? response : response.items;
 }
 
-
   async sendOrder(order: IOrderRequest): Promise<void> {
     await this.api.post('/order/', order);
   }

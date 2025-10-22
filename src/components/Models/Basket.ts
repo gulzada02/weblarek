@@ -1,7 +1,7 @@
 import { IProduct } from '../../types';
 import { EventEmitter } from '../base/Events';
 
-export class Basket {
+export class Basket  {
   private events: EventEmitter;
   private items: IProduct[] = [];
 

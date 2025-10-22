@@ -1,38 +1,27 @@
 import { EventEmitter } from "../base/Events";
+import { Component } from "../base/Component";
+import { ensureElement } from "../../utils/utils";
+import { AppEvents } from "../../utils/constants";
+import { ISuccessData } from "../../types";
+import { IEvents } from "../base/Events";
 
 
-export class SuccessView {
-  private container: HTMLElement;
-  private events: EventEmitter;
-  private button: HTMLButtonElement;
-  private totalPriceElement: HTMLElement;
+export class SuccessView extends Component<ISuccessData>{
+  private _totalPrice: HTMLElement
+  private _confirmButton: HTMLButtonElement
 
-  private _totalPrice: number = 0;
+  constructor(container: HTMLElement, private _events: IEvents){
+    super(container)
+    this._totalPrice = ensureElement<HTMLElement>('.order-success__description', container)
+    this._confirmButton = ensureElement<HTMLButtonElement>('.order-success__close', container)
 
-  constructor(template: HTMLTemplateElement, events: EventEmitter) {
-    this.container = (template);
-    this.events = events;
-
-    this.button = this.container.querySelector<HTMLButtonElement>('.success__button')!;
-    this.totalPriceElement = this.container.querySelector<HTMLElement>('.success__total-price')!;
-
-    this.button.addEventListener('click', () => {
-      this.events.emit('success:confirm');
-    });
+    this._confirmButton.addEventListener('click', () => {
+      this._events.emit(AppEvents.SUCCESS_CONFIRM)
+    })
   }
 
-  set totalPrice(value: number) {
-    this._totalPrice = value;
-    this.totalPriceElement.textContent = `${value} ₽`;
-  }
-
-  get totalPrice(): number {
-    return this._totalPrice;
-  }
-
-  // Возвращает отрендеренный элемент
-  render(): HTMLElement {
-    this.totalPriceElement.textContent = `${this._totalPrice} ₽`;
-    return this.container;
+  set totalPrice(value: number){
+    this._totalPrice.textContent = `Списано ${value} синапсов`
   }
 }
+

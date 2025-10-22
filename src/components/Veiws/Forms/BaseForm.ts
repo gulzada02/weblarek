@@ -1,22 +1,25 @@
-// BaseForm.ts
 import { Component } from "../../base/Component";
 import { ensureElement } from "../../../utils/utils";
+import { IEvents } from "../../base/Events";
+import { AppEvents } from "../../../utils/constants";
 
-export abstract class BaseForm extends Component<any> {
-  public form: HTMLFormElement;
-  public submitButton: HTMLButtonElement;
+export abstract class BaseForm<T> extends Component<T> {
+  protected form: HTMLFormElement;
+  protected submitButton: HTMLButtonElement;
 
-  constructor(selector: string) {
-    const formEl = ensureElement<HTMLFormElement>(selector);
-    super(formEl);
-    this.form = formEl;
+  constructor(container: HTMLElement, protected events: IEvents) {
+    super(container);
 
+    this.form = this.container as HTMLFormElement;
     this.submitButton = ensureElement<HTMLButtonElement>('button[type="submit"]', this.form);
 
     this.form.addEventListener('submit', this.handleSubmit.bind(this));
   }
 
-  protected abstract handleSubmit(event: Event): void;
+  protected  handleSubmit(event: Event): void {
+    event.preventDefault();
+      this.events.emit(AppEvents.FORM_ORDER_SUBMIT);
+    }
 
   public checkIsFormValid(errors: Record<string, boolean>): boolean {
     return !Object.values(errors).some(Boolean);
@@ -26,7 +29,7 @@ export abstract class BaseForm extends Component<any> {
     this.submitButton.disabled = !enabled;
   }
 
-  public resetFormState(): void {
+  protected resetFormState(): void {
     this.form.reset();
   }
 }

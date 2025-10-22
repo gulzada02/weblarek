@@ -35,9 +35,9 @@ export class BasketView {
     this.renderList();
   }
 
-  get basketList(): HTMLElement[] {
-    return this._basketList;
-  }
+  // get basketList(): HTMLElement[] {
+  //   return this._basketList;
+  // }
 
   // Общая сумма
   set totalPrice(value: number) {
@@ -45,9 +45,9 @@ export class BasketView {
     this.totalPriceElement.textContent = `${value} ₽`;
   }
 
-  get totalPrice(): number {
-    return this._totalPrice;
-  }
+  // get totalPrice(): number {
+  //   return this._totalPrice;
+  // }
 
   // Показываем или скрываем сообщение "Корзина пуста"
   setEmptyMessage(hasItems: boolean) {

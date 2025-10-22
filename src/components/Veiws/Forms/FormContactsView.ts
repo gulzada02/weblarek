@@ -1,18 +1,17 @@
 import { BaseForm } from "../Forms/BaseForm";
 import { EventEmitter } from "../../base/Events";
 import { ensureElement } from "../../../utils/utils";
+import { AppEvents } from "../../../utils/constants";
 
-export class FormContactsView extends BaseForm {
-  private events: EventEmitter;
+export class FormContactsView<T> extends BaseForm<T> {
   private emailInput: HTMLInputElement;
   private phoneInput: HTMLInputElement;
 
   constructor(container: HTMLElement, events: EventEmitter) {
-    super('#contacts'); 
-    this.events = events;
+    super(container, events);
 
-    this.emailInput = ensureElement<HTMLInputElement>('#contacts-email', container);
-    this.phoneInput = ensureElement<HTMLInputElement>('#contacts-phone', container);
+    this.emailInput = ensureElement<HTMLInputElement>('[name=email]', container);
+    this.phoneInput = ensureElement<HTMLInputElement>('[name=phone]', container);
 
     this.addListeners();
   }
@@ -28,12 +27,13 @@ export class FormContactsView extends BaseForm {
   }
 
   public handleSubmit(event: Event): void {
-    event.preventDefault();
-    this.events.emit('form:contactsSubmit');
-  }
+  event.preventDefault();
+  this.events.emit(AppEvents.FORM_ORDER_SUBMIT);
+}
+
 
   public validate(errors: Record<string, boolean>): boolean {
-  return this.checkIsFormValid(errors); 
+    return this.checkIsFormValid(errors);
   }
 
   public setSubmitButton(enabled: boolean) {

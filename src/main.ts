@@ -15,12 +15,8 @@ import { Buyer, TPayment } from './components/Models/Buyer';
 import { IProduct } from './types';
 
 // ================== API ==================
-import { Api, ApiClient} from './components/base/Api';
+import { Api} from './components/base/Api';
 const baseApi = new Api(import.meta.env.VITE_API_URL || API_URL);
-const apiClient = new ApiClient(baseApi)
-apiClient.getAllProducts()
-  .then(data => productsModel.setProducts(data))
-  .catch(error => console.error('Ошибка загрузки товаров:', error))
 
 // ================== VIEWS ==================
 import { GalleryView } from './components/Veiws/GalleryView';
@@ -146,14 +142,13 @@ events.on('buyer:change', ({ field }: { field: keyof ReturnType<Buyer['getData']
 
 if (field === 'payment' || field === 'address') {
   const isValid = formOrderView.checkIsFormValid(errorsRecord); 
-  formOrderView.toggleSubmitButton(isValid); 
+  formOrderView.togglePaymentButtonStatus(Boolean(selectedPayment) ? selectedPayment : null); 
+  formOrderView.toggleSubmitButton(isValid);
   if (selectedPayment) formOrderView.togglePaymentButtonStatus(selectedPayment);
 } else if (field === 'email' || field === 'phone') {
   const isValid = formContactsView.checkIsFormValid(errorsRecord); 
   formContactsView.toggleSubmitButton(isValid);
 }
-
-
 });
 
 events.on('form:contactsSubmit', () => {
@@ -178,7 +173,7 @@ events.on('form:contactsSubmit', () => {
         buyerModel.clear();
         headerView.counter = basketModel.getItemCount();
         modal.setContent(successView.render());
-        formOrderView.reset();
+        formOrderView.resetFormState();
         formContactsView.reset();
       })
       .catch((err: unknown) => console.error('Не удалось разместить заказ: ', err));
@@ -193,3 +188,4 @@ events.on('modal:close', () => {
   if (selected) productsModel.setSelectedProduct(null);
   modal.close();
 });
+

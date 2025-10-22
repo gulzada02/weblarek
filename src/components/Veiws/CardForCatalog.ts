@@ -5,8 +5,8 @@ import { categoryMap, CDN_URL } from "../../utils/constants";
 import { BaseCard } from "./BaseCard";
 
 export class CardForCatalog extends BaseCard {
-  constructor(template: HTMLTemplateElement, events: EventEmitter) {
-    super(template, events);
+  constructor(container: HTMLTemplateElement, events: EventEmitter) {
+    super(container, events);
 
     this.image = ensureElement<HTMLImageElement>('.card__image', this.element);
     this.title = ensureElement<HTMLElement>('.card__title', this.element);

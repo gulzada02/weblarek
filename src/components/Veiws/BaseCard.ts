@@ -10,8 +10,8 @@ export abstract class BaseCard {
   protected category!: HTMLElement;
   protected price!: HTMLElement;
 
-  constructor(template: HTMLTemplateElement, events: EventEmitter) {
-    const first = template.content.firstElementChild;
+  constructor(container: HTMLTemplateElement, events: EventEmitter) {
+    const first = container.content.firstElementChild;
     if (!first || !(first instanceof HTMLElement)) {
       throw new Error('Template must have an HTMLElement as its root element');
     }

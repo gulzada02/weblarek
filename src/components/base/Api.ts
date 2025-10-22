@@ -1,4 +1,3 @@
-import { IApi, IProduct, TOrder, TOrderResponse, TProductsResponse } from "../../types";
 type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 
 export class Api {
@@ -37,19 +36,5 @@ export class Api {
     }
 }
 
-export class ApiClient {
-  constructor(
-    protected _api: IApi
-  ){}
-
-    getAllProducts(): Promise<IProduct[]> {
-        return this._api.get<TProductsResponse>('/product/')
-            .then(response => response.items)
-    }
-
-    placeOrder(orderData: TOrder): Promise<TOrderResponse> {
-        return this._api.post<TOrderResponse>('/order/', orderData)
-    }
-}
 
 

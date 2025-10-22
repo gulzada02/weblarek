@@ -8,8 +8,8 @@ export class CardForPreview extends BaseCard {
   private button: HTMLButtonElement;
   private _buttonText: string = 'Купить';
 
-  constructor(template: HTMLTemplateElement, events: EventEmitter) {
-    super(template, events);
+  constructor(container: HTMLTemplateElement, events: EventEmitter) {
+    super(container, events);
 
     this.image = ensureElement<HTMLImageElement>('.card__image', this.element);
     this.title = ensureElement<HTMLElement>('.card__title', this.element);
