@@ -1,18 +1,17 @@
+import { events } from '../../main';
 import { IProduct } from '../../types';
-import { EventEmitter } from '../base/Events';
 
-export class Products extends EventEmitter {
+export class Products {
   private products: IProduct[] = [];
   private selectedProduct: IProduct | null = null;
 
   constructor(products: IProduct[] = []) {
-    super();
     if (products.length) this.setProducts(products);
   }
 
   setProducts(products: IProduct[]): void {
     this.products = products;
-    this.emit('products:change', this.products);
+    events.emit('products:change', products);
   }
 
   getProducts(): IProduct[] {
@@ -25,7 +24,7 @@ export class Products extends EventEmitter {
 
   setSelectedProduct(product: IProduct | null): void {
     this.selectedProduct = product;
-    this.emit('product:selected', product ?? undefined);
+    events.emit('product:selected', product ?? undefined);
   }
 
   getSelectedProduct(): IProduct | null {

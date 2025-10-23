@@ -52,15 +52,17 @@ const formContactsView = new FormContactsView(cloneTemplate(formContactsTemplate
 serverService.fetchProducts()
   .then((products: IProduct[]) => {
     productsModel.setProducts(products);
+    console.log(productsModel.getProducts());
   })
   .catch((err: unknown) => console.error('Не удалось загрузить товары: ', err));
   
-productsModel.on('products:change', (products: IProduct[]) => {
-  const cards = products.map(product => new CardForCatalog(cardForCatalogTemplate, events).render(product));
+events.on('products:change', (products: IProduct[]) => {
+  const cards = products.map(product => {
+    return new CardForCatalog(cloneTemplate(cardForCatalogTemplate), events).render(product)});
   galleryView.galleryList = cards;
 });
 
-productsModel.on('product:selected', (product: IProduct) => {
+events.on('product:selected', (product: IProduct) => {
   const card = new CardForPreview(cardForPreviewTemplate, events);
 
   if (product.price === null) card.toggleButtonState(false);

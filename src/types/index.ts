@@ -2,11 +2,15 @@ export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 export type TPayment = 'card' | 'cash' | null;
 export type TProductsResponse = IApiResponse<IProduct>;
 
+// export interface IApi {
+//   get<T>(url: string): Promise<T>;
+//   post<T>(url: string, data: unknown): Promise<T>;
+//   put<T>(url: string, data: unknown): Promise<T>;
+//   delete<T>(url: string): Promise<T>;
+// }
 export interface IApi {
-  get<T>(url: string): Promise<T>;
-  post<T>(url: string, data: unknown): Promise<T>;
-  put<T>(url: string, data: unknown): Promise<T>;
-  delete<T>(url: string): Promise<T>;
+    get<T extends object>(uri: string): Promise<T>;
+    post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
 }
 
 export interface IApiResponse<T> {
