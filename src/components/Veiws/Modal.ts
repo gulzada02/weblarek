@@ -1,6 +1,7 @@
 import { EventEmitter } from "../base/Events";
+import { Component } from "../base/Component";
 
-export class Modal {
+export class Modal  extends Component<HTMLElement> {
   private modal: HTMLElement;
   private closeBtn: HTMLElement;
   private contentContainer: HTMLElement;
@@ -13,6 +14,7 @@ export class Modal {
   };
 
   constructor(selector: string, events: EventEmitter) {
+    super(document.createElement('div'));
     const modalEl = document.querySelector(selector);
     if (!modalEl) throw new Error(`Modal with selector "${selector}" not found`);
     this.modal = modalEl as HTMLElement;

@@ -3,6 +3,7 @@ import { ensureElement } from "../../../utils/utils";
 import { IEvents } from "../../base/Events";
 import { AppEvents } from "../../../utils/constants";
 
+
 export abstract class BaseForm<T> extends Component<T> {
   protected form: HTMLFormElement;
   protected submitButton: HTMLButtonElement;

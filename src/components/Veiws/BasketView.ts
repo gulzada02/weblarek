@@ -1,8 +1,9 @@
 import { EventEmitter } from "../base/Events";
 import { ensureElement } from "../../utils/utils";
+import { Component } from "../base/Component";
 
-export class BasketView {
-  private container: HTMLElement;
+export class BasketView extends Component<HTMLElement> {
+  protected container: HTMLElement;
   private events: EventEmitter;
   private listContainer: HTMLElement;
   private totalPriceElement: HTMLElement;
@@ -13,6 +14,7 @@ export class BasketView {
   private _totalPrice: number = 0;
 
   constructor(container: HTMLElement, events: EventEmitter) {
+    super(container);
     this.container = container;
     this.events = events;
 
