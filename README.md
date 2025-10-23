@@ -348,28 +348,6 @@ class Gallery {
 | `modal:close`     | Закрытие модального окна          |
 | `order:close`     | Завершение оформления заказа      |
 
--
-
-```ts
-import { Products } from './components/Models/Products';
-import { Basket } from './components/Models/Basket';
-import { Buyer } from './components/Models/Buyer';
-import { ServerService } from './components/Models/ServerService';
-import { Modal } from './components/View/Modal';
-import { Gallery } from './components/View/Gallery';
-import { EventEmitter } from './components/base/Events';
-import { Api } from './components/base/Api';
-
-const events = new EventEmitter();
-const api = new Api();
-const server = new ServerService(api);
-const products = new Products();
-const basket = new Basket();
-const buyer = new Buyer();
-
-const modal = new Modal(document.getElementById('modal-container')!);
-const gallery = new Gallery(document.querySelector('main.gallery')!);
-```
 
 #### Модальное окно (Modal)
 Назначение: отображение всплывающих окон для просмотра товара, корзины, оформления заказа, сообщений об успехе.

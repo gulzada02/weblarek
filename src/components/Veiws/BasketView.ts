@@ -1,7 +1,7 @@
 import { IEvents } from "../base/Events";
+import { ensureElement } from "../../utils/utils";
 import { Component } from "../base/Component";
 import { IBasketViewData } from "../../types";
-import { ensureElement } from "../../utils/utils";
 
 export class BasketView extends Component<IBasketViewData> {
   private events: IEvents;
@@ -10,14 +10,15 @@ export class BasketView extends Component<IBasketViewData> {
   private submitButton: HTMLButtonElement;
   private emptyMessage: HTMLElement;
 
+
   constructor(container: HTMLElement, events: IEvents) {
     super(container);
     this.events = events;
 
-    this.listContainer = ensureElement<HTMLUListElement>('.basket__list', container);
-    this.totalPriceElement = ensureElement<HTMLElement>('.basket__price', container);
-    this.submitButton = ensureElement<HTMLButtonElement>('.basket__button', container);
-    this.emptyMessage = ensureElement<HTMLElement>('.basket__empty', container);
+    this.listContainer = ensureElement<HTMLUListElement>('.basket__list', container)
+    this.totalPriceElement = ensureElement<HTMLElement>('.basket__price', container)
+    this.submitButton = ensureElement<HTMLButtonElement>('.basket__button', container)
+    this.emptyMessage = ensureElement<HTMLElement>('.basket__empty', container)
 
     this.submitButton.addEventListener('click', () => {
       this.events.emit('basket:placeOrder');
@@ -25,11 +26,11 @@ export class BasketView extends Component<IBasketViewData> {
   }
 
   set basketList(cards: HTMLElement[]) {
-    this.basketList = cards;
+    this.listContainer.replaceChildren(...cards)
   }
 
   set totalPrice(value: number) {
-    this.totalPriceElement.textContent = `${value} синапсов`;
+  this.totalPriceElement.textContent = `${value} синапсов`;
   }
 
   setEmptyMessage(hasItems: boolean) {
@@ -43,4 +44,5 @@ export class BasketView extends Component<IBasketViewData> {
   toggleSubmitButton(enabled: boolean) {
     this.submitButton.disabled = !enabled;
   }
+
 }

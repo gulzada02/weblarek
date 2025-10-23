@@ -63,37 +63,37 @@ events.on('products:change', (products: IProduct[]) => {
   galleryView.galleryList = cards;
 });
 
-events.on('products:select', (product: IProduct) => {
-  const card = new CardForPreview(cloneTemplate(cardForPreviewTemplate), events);
-  
-  if (product.price === null) {
+events.on('product:selected:set', (product: IProduct) => {
+  const card = new CardForPreview(cloneTemplate(cardForPreviewTemplate), events)
+
+  if (product && product.price === null) {
     card.toggleButtonState(false);
-  } else if (basketModel.hasItem(product.id)) {
+  } else if (product && basketModel.hasItem(product.id)) {
     card.buttonText = 'Удалить из корзины';
   } else {
     card.buttonText = 'В корзину';
   }
-  
-  modal.open(card.render(product));
-});
 
-events.on('product:select', ({ id }: { id: string }) => {
-  const product = productsModel.getProductById(id);
+  modal.open(card.render(product))
+})
+
+events.on('product:select', (data: { id: string }) => {
+  const product = productsModel.getProductById(data.id);
   if (product) productsModel.setSelectedProduct(product);
 });
 
-events.on('product:submit', ({ id }: { id: string }) => {
-  const product = productsModel.getProductById(id);
+events.on('product:submit', (data: { id: string }) => {
+  const product = productsModel.getProductById(data.id);
   if (!product) return;
 
-  if (!basketModel.hasItem(id)) basketModel.addItem(product);
-  else basketModel.removeItem(id);
+  if (!basketModel.hasItem(data.id)) basketModel.addItem(product);
+  else basketModel.removeItem(data.id);
 
   modal.close();
 });
 
-events.on('basket:listChange', (data: { purchases: IProduct[], totalPrice: number, quantity: number }) => {
-  const cards = data.purchases.map((product: IProduct, index: number) => {
+events.on('basket:listChange', (data: { items: IProduct[], totalPrice: number, count: number }) => {
+  const cards = data.items.map((product: IProduct, index: number) => {
     const card = new CardForBasket(cloneTemplate(cardForBasketTemplate), events);
     card.index = index + 1;
     return card.render(product);
@@ -101,10 +101,11 @@ events.on('basket:listChange', (data: { purchases: IProduct[], totalPrice: numbe
 
   basketView.basketList = cards;
   basketView.totalPrice = data.totalPrice;
-  basketView.setEmptyMessage(data.quantity > 0);
-  basketView.toggleSubmitButton(data.quantity > 0);
-  headerView.counter = data.quantity;
+  basketView.setEmptyMessage(data.count > 0);
+  basketView.toggleSubmitButton(data.count > 0);
+  headerView.counter = data.count;
 });
+
 
 events.on('basket:open', () => {
   const hasProducts = basketModel.getItemCount() > 0;
@@ -113,8 +114,9 @@ events.on('basket:open', () => {
   modal.open(basketView.render());
 });
 
-events.on('product:delete', ({ id }: { id: string }) => {
-  basketModel.removeItem(id);
+events.on('product:delete', (data: { id: string }) => {
+  const product = productsModel.getProductById(data.id)
+  if(product) basketModel.removeItem(product.id);
 });
 
 events.on('basket:placeOrder', () => {
@@ -178,9 +180,10 @@ events.on('form:contactsSubmit', () => {
 });
 
 events.on('success:confirm', () => modal.close());
+
 events.on('modal:close', () => {
-  const selected = productsModel.getSelectedProduct();
-  if (selected) productsModel.setSelectedProduct(null);
+  productsModel.clearSelectedProduct()
   modal.close();
 });
+
 

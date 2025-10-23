@@ -1,5 +1,5 @@
 import { IApi } from '../../types';
-import { IProduct, IBuyer, IOrderRequest, productsApi, IProductResponse} from '../../types';
+import { IProduct, IOrderRequest } from '../../types';
 
 export class ServerService {
   private api: IApi;

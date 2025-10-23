@@ -24,10 +24,14 @@ export class Products {
 
   setSelectedProduct(product: IProduct | null): void {
     this.selectedProduct = product;
-    events.emit('product:selected', product ?? undefined);
+    events.emit('product:selected:set', product ?? undefined);
   }
 
   getSelectedProduct(): IProduct | null {
     return this.selectedProduct;
+  }
+
+  clearSelectedProduct():void {
+    this.selectedProduct = null
   }
 }

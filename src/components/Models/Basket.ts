@@ -1,43 +1,39 @@
 import { IProduct } from '../../types';
-import { EventEmitter } from '../base/Events';
+import { IEvents } from '../base/Events';
 
 export class Basket  {
-  private events: EventEmitter;
+  private events: IEvents;
   private items: IProduct[] = [];
 
-  constructor(events: EventEmitter) {
+  constructor(events: IEvents) {
     this.events = events;
   }
 
   addItem(product: IProduct): void {
     this.items.push(product);
     this.events.emit('basket:listChange', {
-      purchases: this.items,
+      items: this.items,
       totalPrice: this.getTotalPrice(),
-      quantity: this.getItemCount()
+      count: this.getItemCount()
     });
-    this.events.emit('basket:add', product);
   }
 
   removeItem(productId: string): void {
-    const index = this.items.findIndex(p => p.id === productId);
-    if (index !== -1) {
-      const removed = this.items.splice(index, 1)[0];
-      this.events.emit('basket:listChange', {
-        purchases: this.items,
-        totalPrice: this.getTotalPrice(),
-        quantity: this.getItemCount()
-      });
-      this.events.emit('basket:remove', removed);
-    }
+    this.items = this.items.filter(item => item.id !== productId);
+
+    this.events.emit('basket:listChange', {
+      items: this.items,
+      totalPrice: this.getTotalPrice(),
+      count: this.getItemCount()
+    });
   }
 
   clear(): void {
     this.items = [];
     this.events.emit('basket:listChange', {
-      purchases: this.items,
+      items: this.items,
       totalPrice: 0,
-      quantity: 0
+      count: 0
     });
   }
 

@@ -38,7 +38,7 @@ export class Modal  extends Component<IModalData> {
   }
 
   setContent(content: HTMLElement): void {
-    this.contentContainer.appendChild(content);
+    this.contentContainer.replaceChildren(content);
   }
 
   close(): void {

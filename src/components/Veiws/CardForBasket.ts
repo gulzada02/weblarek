@@ -1,44 +1,23 @@
-import { EventEmitter } from "../base/Events";
-import { IProduct } from "../../types";
-import { cloneTemplate } from "../../utils/utils";
-import { CDN_URL } from "../../utils/constants";
+import { ensureElement } from "../../utils/utils";
+import { BaseCard } from "./BaseCard";
+import { IEvents } from "../base/Events";
 
-export class CardForBasket {
-  private container: HTMLElement;
-  private events: EventEmitter;
-  private imgEl: HTMLImageElement;
-  private titleEl: HTMLElement;
-  private priceEl: HTMLElement;
+export class CardForBasket extends BaseCard {
   private deleteBtn: HTMLButtonElement;
-  public index: number = 0;
 
-  constructor(template: HTMLTemplateElement, events: EventEmitter) {
-    this.container = cloneTemplate(template);
-    this.events = events;
+  public indexCard: HTMLElement;
 
-    this.imgEl = this.container.querySelector<HTMLImageElement>('.basket__img')!;
-    this.titleEl = this.container.querySelector<HTMLElement>('.basket__title')!;
-    this.priceEl = this.container.querySelector<HTMLElement>('.basket__price')!;
-    this.deleteBtn = this.container.querySelector<HTMLButtonElement>('.basket__delete')!;
+  constructor(container: HTMLElement, events: IEvents) {
+    super(container, events)
+    this.indexCard = ensureElement<HTMLElement>('.basket__item-index', container)
+    this.deleteBtn = ensureElement<HTMLButtonElement>('.basket__item-delete', container)
 
-    this.addListeners();
-  }
-
-  private addListeners() {
     this.deleteBtn.addEventListener('click', () => {
-      const productId = this.container.dataset.id!;
-      this.events.emit('product:delete', { id: productId });
-    });
+      this.events.emit('product:delete', {id: this._id})
+    })
   }
 
-  public render(product: IProduct): HTMLElement {
-    this.container.dataset.id = product.id;
-    this.imgEl.src = `${CDN_URL}/${product.image}`;
-    this.imgEl.alt = product.title;
-    this.titleEl.textContent = `${this.index}. ${product.title}`;
-    this.priceEl.textContent = product.price !== null ? `${product.price} ₽` : 'Нет в наличии';
-
-    return this.container;
+  set index(index: number){
+    this.indexCard.textContent = String(index)
   }
-}
- 
+  }

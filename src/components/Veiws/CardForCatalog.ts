@@ -4,22 +4,20 @@ import { ensureElement } from "../../utils/utils";
 import { categoryMap, CDN_URL } from "../../utils/constants";
 import { BaseCard } from "./BaseCard";
 
+
 export class CardForCatalog extends BaseCard {
   private _image: HTMLImageElement;
   private category: HTMLElement;
 
-  constructor(container: HTMLElement, protected events: IEvents) {
+  constructor(container: HTMLElement, events: IEvents) {
     super(container, events);
+
     this._image = ensureElement<HTMLImageElement>('.card__image', container);
     this.category = ensureElement<HTMLElement>('.card__category', container);
-    this.element.addEventListener('click', () => {
-    this.events.emit('product:select');
+  
     this.container.addEventListener('click', () => {
-      if (this._id) {
-        this.events.emit('product:select', { id: this._id });
-      }
+      this.events.emit('product:select', {id: this._id});
     });
-});
   }
 
   set image(src: string){
