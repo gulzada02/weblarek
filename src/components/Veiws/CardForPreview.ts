@@ -8,14 +8,14 @@ export class CardForPreview extends BaseCard {
   private image: HTMLImageElement;
   private category: HTMLElement;
   private button: HTMLButtonElement;
-  private _buttonText: string = 'Купить';
+  public buttonText: string = 'Купить';
 
   constructor(container: HTMLElement, events: IEvents) {
     super(container, events);
 
-    this.image = ensureElement<HTMLImageElement>('.card__image', this.element);
-    this.category = ensureElement<HTMLElement>('.card__category', this.element);
-    this.button = ensureElement<HTMLButtonElement>('.card__button', this.element);
+    this.image = ensureElement<HTMLImageElement>('.card__image', container);
+    this.category = ensureElement<HTMLElement>('.card__category', container);
+    this.button = ensureElement<HTMLButtonElement>('.card__button', container);
 
     this.addListeners();
   }
@@ -32,10 +32,10 @@ export class CardForPreview extends BaseCard {
     this.button.disabled = !enabled;
   }
 
-  set buttonText(text: string) {
-    this._buttonText = text;
-    this.button.textContent = text;
-  }
+  // set buttonText(text: string) {
+  //   this.buttonText = text;
+  //   this.button.textContent = text;
+  // }
 
   public render(product: IProduct): HTMLElement {
     this._id = product.id;
@@ -48,7 +48,7 @@ export class CardForPreview extends BaseCard {
     this._price.textContent =
       product.price !== null ? `${product.price} синапсов` : 'Нет в наличии';
 
-    this.button.textContent = this._buttonText;
+    this.button.textContent = this.buttonText;
     this.button.disabled = product.price === null;
 
     return this.element;

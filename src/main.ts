@@ -1,6 +1,6 @@
 import './scss/styles.scss';
 
-import { API_URL, AppEvents } from './utils/constants';
+import { API_URL } from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
 import { EventEmitter } from './components/base/Events'; 
 export const events = new EventEmitter();
@@ -36,6 +36,7 @@ const basketTemplate = ensureElement<HTMLTemplateElement>("#basket");
 
 const galleryElement = ensureElement<HTMLElement>(".gallery");
 const headerElement = ensureElement<HTMLElement>(".header");
+const modalElement = ensureElement<HTMLElement>(".modal");
 
 const productsModel = new Products();
 const basketModel = new Basket(events);
@@ -43,7 +44,7 @@ const buyerModel = new Buyer();
 
 const galleryView = new GalleryView(galleryElement);
 const headerView = new HeaderView(headerElement, events);
-const modal = new Modal('.modal__container', events);
+const modal = new Modal(modalElement, events);
 const basketView = new BasketView(cloneTemplate<HTMLDivElement>(basketTemplate), events);
 const successView = new SuccessView(cloneTemplate(successTemplate), events);
 const formOrderView = new FormOrderView(cloneTemplate(formOrderTemplate), events);
@@ -62,7 +63,7 @@ events.on('products:change', (products: IProduct[]) => {
   galleryView.galleryList = cards;
 });
 
-events.on(AppEvents.SELECTED_PRODUCT_SET, (product: IProduct) => {
+events.on('products:select', (product: IProduct) => {
   const card = new CardForPreview(cloneTemplate(cardForPreviewTemplate), events);
   
   if (product.price === null) {

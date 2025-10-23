@@ -1,30 +1,25 @@
 import { IHeaderData } from "../../types";
 import { Component } from "../base/Component";
-import { EventEmitter } from "../base/Events";
+import { IEvents } from "../base/Events";
+import { ensureElement } from "../../utils/utils";
 
 export class HeaderView extends Component<IHeaderData> {
-  private header: HTMLElement;
   private basketButton: HTMLElement;
   private basketCounter: HTMLElement;
-  private events: EventEmitter;
+  private events: IEvents;
 
-  constructor(header: HTMLElement, events: EventEmitter) {
-    super(header);
-    this.header = header;
+  constructor(container: HTMLElement, events: IEvents) {
+    super(container);
     this.events = events;
 
-    // корзинка и счётчик
-    this.basketButton = this.header.querySelector<HTMLElement>('.header__basket') as HTMLElement;
-    this.basketCounter = this.header.querySelector<HTMLElement>('.header__basket-counter') as HTMLElement;
+    this.basketButton = ensureElement<HTMLElement>('.header__basket', container);
+    this.basketCounter = ensureElement<HTMLElement>('.header__basket-counter', container);
 
-
-    // обработчик на кнопку корзины
     this.basketButton.addEventListener('click', () => {
       this.events.emit('basket:open');
     });
   }
 
-  // количество товаров в корзине
   set counter(value: number) {
     this.basketCounter.textContent = String(value);
   }

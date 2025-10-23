@@ -1,48 +1,37 @@
-import { EventEmitter } from "../base/Events";
-import { ensureElement } from "../../utils/utils";
+import { IEvents } from "../base/Events";
 import { Component } from "../base/Component";
+import { IBasketViewData } from "../../types";
+import { ensureElement } from "../../utils/utils";
 
-export class BasketView extends Component<HTMLElement> {
-  protected container: HTMLElement;
-  private events: EventEmitter;
-  private listContainer: HTMLElement;
+export class BasketView extends Component<IBasketViewData> {
+  private events: IEvents;
+  private listContainer: HTMLUListElement;
   private totalPriceElement: HTMLElement;
   private submitButton: HTMLButtonElement;
   private emptyMessage: HTMLElement;
 
-  private _basketList: HTMLElement[] = [];
-  private _totalPrice: number = 0;
-
-  constructor(container: HTMLElement, events: EventEmitter) {
+  constructor(container: HTMLElement, events: IEvents) {
     super(container);
-    this.container = container;
     this.events = events;
 
-    this.listContainer = this.container.querySelector<HTMLElement>('.basket__list')!;
-    this.totalPriceElement = this.container.querySelector<HTMLElement>('.basket__total-price')!;
-    this.submitButton = this.container.querySelector<HTMLButtonElement>('.basket__submit')!;
-    this.emptyMessage = this.container.querySelector<HTMLElement>('.basket__empty')!;
+    this.listContainer = ensureElement<HTMLUListElement>('.basket__list', container);
+    this.totalPriceElement = ensureElement<HTMLElement>('.basket__price', container);
+    this.submitButton = ensureElement<HTMLButtonElement>('.basket__button', container);
+    this.emptyMessage = ensureElement<HTMLElement>('.basket__empty', container);
 
-    // Навешиваем обработчик на кнопку оформления заказа
-    this.submitButton = ensureElement<HTMLButtonElement>('.basket__button', this.container);
     this.submitButton.addEventListener('click', () => {
       this.events.emit('basket:placeOrder');
     });
   }
 
-  // Рендер списка карточек корзины
   set basketList(cards: HTMLElement[]) {
-    this._basketList = cards;
-    this.renderList();
+    this.basketList = cards;
   }
 
-  // Общая сумма
   set totalPrice(value: number) {
-    this._totalPrice = value;
-    this.totalPriceElement.textContent = `${value} ₽`;
+    this.totalPriceElement.textContent = `${value} синапсов`;
   }
 
-  // Показываем или скрываем сообщение "Корзина пуста"
   setEmptyMessage(hasItems: boolean) {
     if (hasItems) {
       this.emptyMessage.style.display = 'none';
@@ -51,23 +40,7 @@ export class BasketView extends Component<HTMLElement> {
     }
   }
 
-  // Активируем или деактивируем кнопку сабмита
   toggleSubmitButton(enabled: boolean) {
     this.submitButton.disabled = !enabled;
-  }
-
-  // Отрендерить список карточек
-  private renderList() {
-    this.listContainer.innerHTML = '';
-    this._basketList.forEach(card => {
-      this.listContainer.appendChild(card);
-    });
-  }
-
-  // Полный рендер корзины
-  render(): HTMLElement {
-    this.renderList();
-    this.totalPriceElement.textContent = `${this._totalPrice} ₽`;
-    return this.container;
   }
 }

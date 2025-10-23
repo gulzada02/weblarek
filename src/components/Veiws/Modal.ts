@@ -1,11 +1,12 @@
-import { EventEmitter } from "../base/Events";
 import { Component } from "../base/Component";
+import { IEvents } from "../base/Events";
+import { ensureElement } from "../../utils/utils";
+import { IModalData } from "../../types";
 
-export class Modal  extends Component<HTMLElement> {
-  private modal: HTMLElement;
+export class Modal  extends Component<IModalData> {
   private closeBtn: HTMLElement;
   private contentContainer: HTMLElement;
-  private events: EventEmitter;
+  private events: IEvents;
 
   private _handleEscape = (evt: KeyboardEvent) => {
     if (evt.key === "Escape") {
@@ -13,63 +14,36 @@ export class Modal  extends Component<HTMLElement> {
     }
   };
 
-  constructor(selector: string, events: EventEmitter) {
-    super(document.createElement('div'));
-    const modalEl = document.querySelector(selector);
-    if (!modalEl) throw new Error(`Modal with selector "${selector}" not found`);
-    this.modal = modalEl as HTMLElement;
+  constructor(container: HTMLElement, events: IEvents) {
+    super(container);
     this.events = events;
+    this.closeBtn = ensureElement<HTMLButtonElement>('.modal__close', container);
+    this.contentContainer = ensureElement<HTMLElement>('.modal__content', container);
 
-    const closeBtn = this.modal.querySelector('.modal__close');
-    if (!closeBtn) throw new Error(`Close button not found in modal`);
-    this.closeBtn = closeBtn as HTMLElement;
+    this.closeBtn.addEventListener('click', () => 
+      this.events.emit('modal:close'));
 
-    const contentContainer = this.modal.querySelector('.modal__content');
-    if (!contentContainer) throw new Error(`Modal content container not found`);
-    this.contentContainer = contentContainer as HTMLElement;
-
-    // Закрытие по кнопке
-    this.closeBtn.addEventListener('click', () => this.close());
-
-    // Закрытие по клику на фон
-    this.modal.addEventListener('click', (e) => {
-      if (e.target === this.modal) this.close();
+    this.container.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        this.events.emit('modal:close');
+      }
     });
   }
 
   open(content: HTMLElement): void {
     this.setContent(content);
-    this.modal.classList.add('modal_active');
+    this.container.classList.add('modal_active');
     document.addEventListener('keydown', this._handleEscape);
     document.body.classList.add('no-scroll');
   }
 
   setContent(content: HTMLElement): void {
-    this.clearContent();
     this.contentContainer.appendChild(content);
   }
 
-  get content(): HTMLElement {
-    return this.contentContainer;
-  }
-
-  set content(content: HTMLElement) {
-    this.setContent(content);
-  }
-
   close(): void {
-    this.modal.classList.remove('modal_active');
-    this.clearContent();
+    this.container.classList.remove('modal_active');
     document.removeEventListener('keydown', this._handleEscape);
     document.body.classList.remove('no-scroll');
-    this.events.emit('modal:close');
-  }
-
-  clearContent(): void {
-    this.contentContainer.innerHTML = '';
-  }
-
-  showLoader(): void {
-    this.contentContainer.innerHTML = `<div class="loader">Загрузка...</div>`;
-  }
+    }
 }
