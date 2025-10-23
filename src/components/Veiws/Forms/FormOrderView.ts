@@ -2,52 +2,40 @@ import { BaseForm } from "../Forms/BaseForm";
 import { IEvents } from "../../base/Events";
 import { ensureElement } from "../../../utils/utils";
 import { TPayment } from "../../../types";
-import { IValidationErrors } from "../../../types";
-import { AppEvents } from "../../../utils/constants";
 
-
-export class FormOrderView<T> extends BaseForm<T> {
+export class FormOrderView extends BaseForm {
   private _cardPayButton: HTMLButtonElement
   private _cashPayButton: HTMLButtonElement
   private _address: HTMLInputElement
 
-  constructor(container: HTMLElement, events: IEvents){
+  constructor(container: HTMLElement, events: IEvents) {
     super(container, events)
     this._cardPayButton = ensureElement<HTMLButtonElement>('[name="card"]', container)
     this._cashPayButton = ensureElement<HTMLButtonElement>('[name="cash"]', container)
     this._address = ensureElement<HTMLInputElement>('[name="address"]', container)
 
     this._cardPayButton.addEventListener('click', () => {
-      this.events.emit(AppEvents.FORM_PAYMENT_CHANGED, { payment: 'card' })
+      this.events.emit('card:select', { payment: 'card' })
     })
 
     this._cashPayButton.addEventListener('click', () => {
-      this.events.emit(AppEvents.FORM_PAYMENT_CHANGED, { payment: 'cash' })
+      this.events.emit('cash:select', { payment: 'cash' })
     })
 
     this._address.addEventListener('input', () => {
-      this.events.emit(AppEvents.FORM_ADDRESS_CHANGED, { address: this._address.value })
+      this.events.emit('address:input', { address: this._address.value })
     })
 
-    this._cashPayButton.addEventListener('click', (event) => { event.preventDefault()
-      this.events.emit(AppEvents.FORM_ORDER_SUBMIT)
-    })
-
-    this.container.addEventListener('focusin', (event) => {
-      if (event.target instanceof HTMLInputElement)
-      this.events.emit(AppEvents.FORM_INPUT_FOCUS)
+    this.submitButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.events.emit('form:order:submit')
     })
   }
-
+  
   protected handleSubmit(event: Event): void {
   event.preventDefault();
-  this.events.emit(AppEvents.FORM_ORDER_SUBMIT);
+  this.events.emit('form:order:submit');
 }
-
-  checkIsFormValid(errors: IValidationErrors): boolean {
-    this.clear()
-    return !errors.payment && !errors.address
-  }
 
   resetFormState(): void {
     super.resetFormState()

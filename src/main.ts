@@ -130,7 +130,7 @@ events.on('form:orderSubmit', () => modal.setContent(formContactsView.render()))
 events.on('form:emailChanged', ({ email }: { email: string }) => buyerModel.setEmail(email));
 events.on('form:phoneChanged', ({ phone }: { phone: string }) => buyerModel.setPhone(phone));
 
-events.on('buyer:change', ({ field }: { field: keyof ReturnType<Buyer['getData']> }) => {
+events.on('buyer:change', ({field}:{field: string}) => {
   const errorsRecord: Record<string, boolean> = {};
   const errors = buyerModel.validate();
   Object.keys(errors).forEach(key => {
@@ -140,14 +140,9 @@ events.on('buyer:change', ({ field }: { field: keyof ReturnType<Buyer['getData']
   const selectedPayment = buyerModel.getData().payment;
 
 if (field === 'payment' || field === 'address') {
-  const isValid = formOrderView.checkIsFormValid(errorsRecord); 
   formOrderView.togglePaymentButtonStatus(Boolean(selectedPayment) ? selectedPayment : null); 
-  formOrderView.toggleSubmitButton(isValid);
   if (selectedPayment) formOrderView.togglePaymentButtonStatus(selectedPayment);
-} else if (field === 'email' || field === 'phone') {
-  const isValid = formContactsView.checkIsFormValid(errorsRecord); 
-  formContactsView.toggleSubmitButton(isValid);
-}
+} 
 });
 
 events.on('form:contactsSubmit', () => {
@@ -173,7 +168,6 @@ events.on('form:contactsSubmit', () => {
         headerView.counter = basketModel.getItemCount();
         modal.setContent(successView.render());
         formOrderView.resetFormState();
-        formContactsView.reset();
       })
       .catch((err: unknown) => console.error('Не удалось разместить заказ: ', err));
   }, 1000);

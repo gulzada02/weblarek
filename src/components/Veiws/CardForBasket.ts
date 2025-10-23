@@ -5,7 +5,7 @@ import { IEvents } from "../base/Events";
 export class CardForBasket extends BaseCard {
   private deleteBtn: HTMLButtonElement;
 
-  public indexCard: HTMLElement;
+  indexCard: HTMLElement;
 
   constructor(container: HTMLElement, events: IEvents) {
     super(container, events)
