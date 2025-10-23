@@ -24,8 +24,4 @@ export class HeaderView {
   set counter(value: number) {
     this.basketCounter.textContent = String(value);
   }
-
-  // get counter(): number {
-  //   return parseInt(this.basketCounter.textContent || '0', 10);
-  // }
 }

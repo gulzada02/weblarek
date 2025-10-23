@@ -26,7 +26,6 @@ export class BasketView {
     this.submitButton.addEventListener('click', () => {
       this.events.emit('basket:placeOrder');
     });
-
   }
 
   // Рендер списка карточек корзины
@@ -35,19 +34,11 @@ export class BasketView {
     this.renderList();
   }
 
-  // get basketList(): HTMLElement[] {
-  //   return this._basketList;
-  // }
-
   // Общая сумма
   set totalPrice(value: number) {
     this._totalPrice = value;
     this.totalPriceElement.textContent = `${value} ₽`;
   }
-
-  // get totalPrice(): number {
-  //   return this._totalPrice;
-  // }
 
   // Показываем или скрываем сообщение "Корзина пуста"
   setEmptyMessage(hasItems: boolean) {

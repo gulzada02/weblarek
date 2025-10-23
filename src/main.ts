@@ -1,6 +1,6 @@
 import './scss/styles.scss';
 
-import { API_URL } from './utils/constants';
+import { API_URL, AppEvents } from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
 import { EventEmitter } from './components/base/Events'; 
 export const events = new EventEmitter();
@@ -62,13 +62,17 @@ events.on('products:change', (products: IProduct[]) => {
   galleryView.galleryList = cards;
 });
 
-events.on('product:selected', (product: IProduct) => {
-  const card = new CardForPreview(cardForPreviewTemplate, events);
-
-  if (product.price === null) card.toggleButtonState(false);
-  else if (basketModel.hasItem(product.id)) card.buttonText = 'Удалить из корзины';
-  else card.buttonText = 'Купить';
-
+events.on(AppEvents.SELECTED_PRODUCT_SET, (product: IProduct) => {
+  const card = new CardForPreview(cloneTemplate(cardForPreviewTemplate), events);
+  
+  if (product.price === null) {
+    card.toggleButtonState(false);
+  } else if (basketModel.hasItem(product.id)) {
+    card.buttonText = 'Удалить из корзины';
+  } else {
+    card.buttonText = 'В корзину';
+  }
+  
   modal.open(card.render(product));
 });
 
