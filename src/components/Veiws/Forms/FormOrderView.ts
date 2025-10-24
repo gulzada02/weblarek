@@ -6,26 +6,26 @@ import { IValidationErrors } from "../../../types";
 
 
 export class FormOrderView extends BaseForm {
-  private _cardPayButton: HTMLButtonElement
-  private _cashPayButton: HTMLButtonElement
-  private _address: HTMLInputElement
+  private cardPayButton: HTMLButtonElement
+  private cashPayButton: HTMLButtonElement
+  private address: HTMLInputElement
 
   constructor(container: HTMLElement, events: IEvents){
     super(container, events)
-    this._cardPayButton = ensureElement<HTMLButtonElement>('[name="card"]', container)
-    this._cashPayButton = ensureElement<HTMLButtonElement>('[name="cash"]', container)
-    this._address = ensureElement<HTMLInputElement>('[name="address"]', container)
+    this.cardPayButton = ensureElement<HTMLButtonElement>('[name="card"]', container)
+    this.cashPayButton = ensureElement<HTMLButtonElement>('[name="cash"]', container)
+    this.address = ensureElement<HTMLInputElement>('[name="address"]', container)
 
-    this._cardPayButton.addEventListener('click', () => {
+    this.cardPayButton.addEventListener('click', () => {
       this.events.emit('payment:changed', {payment: 'card'})
     })
 
-    this._cashPayButton.addEventListener('click', () => {
+    this.cashPayButton.addEventListener('click', () => {
       this.events.emit('payment:changed', {payment: 'cash'})
     })
 
-    this._address.addEventListener('input', () => {
-      this.events.emit('address:changed', {address: this._address.value})
+    this.address.addEventListener('input', () => {
+      this.events.emit('address:changed', {address: this.address.value})
     })
 
     this.submitButton.addEventListener('click', (e) => {
@@ -42,16 +42,16 @@ export class FormOrderView extends BaseForm {
   resetFormState(): void {
     super.resetFormState()
     this.clear()
-    this._cardPayButton.classList.remove('button_alt-active')
-    this._cashPayButton.classList.remove('button_alt-active')
+    this.cardPayButton.classList.remove('button_alt-active')
+    this.cashPayButton.classList.remove('button_alt-active')
   }
 
   togglePaymentButtonStatus(status: TPayment): void {
-    this._cardPayButton.classList.toggle('button_alt-active', status === 'card')
-    this._cashPayButton.classList.toggle('button_alt-active', status === 'cash')
+    this.cardPayButton.classList.toggle('button_alt-active', status === 'card')
+    this.cashPayButton.classList.toggle('button_alt-active', status === 'cash')
   }
 
   clear(): void {
-    this._address.value = ''
+    this.address.value = ''
   }
 }
