@@ -16,7 +16,7 @@ export class CardForCatalog extends BaseCard {
     this.categoryElement = ensureElement<HTMLElement>('.card__category', container);
   
     this.container.addEventListener('click', () => {
-      this.events.emit('product:select', {id: this.id});
+      this.events.emit('product:select', {id: this._id});
     });
   }
 

@@ -18,7 +18,7 @@ export class CardForPreview extends BaseCard {
     this.descriptionElement = ensureElement<HTMLElement>('.card__text', container);
 
     this.button.addEventListener('click', () => {
-      this.events.emit('product:submit', {id: this.id})
+      this.events.emit('product:submit', {id: this._id})
     })
   }
 
