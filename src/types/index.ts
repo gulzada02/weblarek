@@ -1,5 +1,5 @@
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
-export type TPayment = 'card' | 'cash' | null;
+export type TPayment = 'card' | 'cash' | '';
 export type TProductsResponse = IApiResponse<IProduct>;
 
 export interface IApi {
@@ -22,7 +22,7 @@ export interface IProduct {
 } 
 
 export interface IBuyer {
-  payment: TPayment|null;
+  payment: TPayment;
   email: string;
   phone: string;
   address: string;

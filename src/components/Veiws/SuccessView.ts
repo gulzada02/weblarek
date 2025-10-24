@@ -6,15 +6,15 @@ import { IEvents } from "../base/Events";
 
 export class SuccessView extends Component<ISuccessData>{
   private _totalPrice: HTMLElement
-  private _confirmButton: HTMLButtonElement
+  private _button: HTMLButtonElement
 
   constructor(container: HTMLElement, private _events: IEvents){
     super(container)
     this._totalPrice = ensureElement<HTMLElement>('.order-success__description', container)
-    this._confirmButton = ensureElement<HTMLButtonElement>('.order-success__close', container)
+    this._button = ensureElement<HTMLButtonElement>('.order-success__close', container)
 
-    this._confirmButton.addEventListener('click', () => {
-      this._events.emit('success:confirm')
+    this._button.addEventListener('click', () => {
+      this._events.emit('success:click')
     })
   }
 

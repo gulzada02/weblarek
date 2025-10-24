@@ -7,13 +7,13 @@ import { BaseCard } from "./BaseCard";
 
 export class CardForCatalog extends BaseCard {
   private _image: HTMLImageElement;
-  private category: HTMLElement;
+  private categoryElement: HTMLElement;
 
   constructor(container: HTMLElement, events: IEvents) {
     super(container, events);
 
     this._image = ensureElement<HTMLImageElement>('.card__image', container);
-    this.category = ensureElement<HTMLElement>('.card__category', container);
+    this.categoryElement = ensureElement<HTMLElement>('.card__category', container);
   
     this.container.addEventListener('click', () => {
       this.events.emit('product:select', {id: this._id});
@@ -27,21 +27,12 @@ export class CardForCatalog extends BaseCard {
     )
   }
 
-  set categoryText(value: string){
-    this.category.textContent = categoryMap[value as keyof typeof categoryMap] || value,
-    this.category.title = value, 
-    this.category.dataset.category = value,
-    this.category.className = `card__category card__category--${value.toLowerCase()}`,
-    this.element.dataset.category = value
-  }
-
   set productData(product: IProduct){
     this.product = product,
     this.id = product.id, 
     this.title = product.title,
     this.price = product.price,
-    this.image = product.image,
-    this.categoryText = product.category
+    this.image = product.image
   }
 
   set altText(value: string){
@@ -50,5 +41,19 @@ export class CardForCatalog extends BaseCard {
 
   set buttonText(value: string){  
     this.buttonText = value;
+  }
+
+  set categoryValue(categoryKey: keyof typeof categoryMap) {
+    this.categoryElement.textContent = categoryKey;
+    Object.values(categoryMap).forEach(className => {
+      this.categoryElement.classList.remove(className);
+    });
+
+    const categoryClass = categoryMap[categoryKey];
+    if (categoryClass) {
+      this.categoryElement.classList.add(categoryClass);
+    }
+    this.categoryElement.title = categoryKey;
+    this.categoryElement.dataset.category = categoryKey;
   }
 }

@@ -10,17 +10,20 @@ export abstract class BaseForm extends Component<IFormErrorData> {
 
   constructor(container: HTMLElement, protected events: IEvents) {
     super(container);
-
-    this.submitButton = ensureElement<HTMLButtonElement>('button[type="submit"]', container);
+    this.submitButton = ensureElement<HTMLButtonElement>('[type="submit"]', container);
     this.error = ensureElement<HTMLElement>('.form__errors', container);
   }
 
-  set errorText(text: string) {
-    this.error.textContent = text;  
+  set errorText(text: string){
+    this.error.textContent = text;
   }
 
   toggleSubmitButton(enabled: boolean): void {
     this.submitButton.disabled = !enabled;
+  }
+
+  toggleErrors(value: boolean):void {
+    this.error.classList.toggle('form__errors-active', value)
   }
 
   resetFormState(): void {

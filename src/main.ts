@@ -1,14 +1,14 @@
 import './scss/styles.scss';
 
-import { API_URL } from './utils/constants';
+import { API_URL, categoryMap } from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
 import { EventEmitter } from './components/base/Events'; 
 export const events = new EventEmitter();
 
 import { Products } from './components/Models/Products';
 import { Basket } from './components/Models/Basket';
-import { Buyer, TPayment } from './components/Models/Buyer';
-import { IProduct } from './types';
+import { Buyer } from './components/Models/Buyer';
+import { IProduct, TOrder, TPayment } from './types';
 import { Api} from './components/base/Api';
 import { ServerService } from './components/Models/ServerService';
 
@@ -36,16 +36,16 @@ const basketTemplate = ensureElement<HTMLTemplateElement>("#basket");
 
 const galleryElement = ensureElement<HTMLElement>(".gallery");
 const headerElement = ensureElement<HTMLElement>(".header");
-const modalElement = ensureElement<HTMLElement>(".modal");
+const modalElement = ensureElement<HTMLElement>(".modal")
 
 const productsModel = new Products();
 const basketModel = new Basket(events);
-const buyerModel = new Buyer();
+const buyerModel = new Buyer(events);
 
 const galleryView = new GalleryView(galleryElement);
 const headerView = new HeaderView(headerElement, events);
 const modal = new Modal(modalElement, events);
-const basketView = new BasketView(cloneTemplate<HTMLDivElement>(basketTemplate), events);
+const basketView = new BasketView(cloneTemplate(basketTemplate), events);
 const successView = new SuccessView(cloneTemplate(successTemplate), events);
 const formOrderView = new FormOrderView(cloneTemplate(formOrderTemplate), events);
 const formContactsView = new FormContactsView(cloneTemplate(formContactsTemplate), events);
@@ -56,11 +56,20 @@ serverService.fetchProducts()
     console.log(productsModel.getProducts());
   })
   .catch((err: unknown) => console.error('Не удалось загрузить товары: ', err));
-  
+
 events.on('products:change', (products: IProduct[]) => {
   const cards = products.map(product => {
-    return new CardForCatalog(cloneTemplate(cardForCatalogTemplate), events).render(product)});
+    const card = new CardForCatalog(cloneTemplate(cardForCatalogTemplate), events);
+    const container = card.render(product);
+    if (product.category) card.categoryValue = product.category as keyof typeof categoryMap;
+    return container;
+  });
   galleryView.galleryList = cards;
+});
+
+events.on('product:select', (data: { id: string }) => {
+  const product = productsModel.getProductById(data.id);
+  if (product) productsModel.setSelectedProduct(product);
 });
 
 events.on('product:selected:set', (product: IProduct) => {
@@ -74,13 +83,12 @@ events.on('product:selected:set', (product: IProduct) => {
     card.buttonText = 'В корзину';
   }
 
+  if (product.category) {
+    card.categoryValue = product.category as keyof typeof categoryMap;
+  }
+
   modal.open(card.render(product))
 })
-
-events.on('product:select', (data: { id: string }) => {
-  const product = productsModel.getProductById(data.id);
-  if (product) productsModel.setSelectedProduct(product);
-});
 
 events.on('product:submit', (data: { id: string }) => {
   const product = productsModel.getProductById(data.id);
@@ -92,10 +100,18 @@ events.on('product:submit', (data: { id: string }) => {
   modal.close();
 });
 
+events.on('basket:open', () => {
+  const hasProducts = basketModel.getItemCount() > 0;
+  basketView.toggleSubmitButton(hasProducts);
+  basketView.setEmptyMessage(hasProducts);
+  modal.open(basketView.render());
+});
+
 events.on('basket:listChange', (data: { items: IProduct[], totalPrice: number, count: number }) => {
   const cards = data.items.map((product: IProduct, index: number) => {
     const card = new CardForBasket(cloneTemplate(cardForBasketTemplate), events);
     card.index = index + 1;
+
     return card.render(product);
   });
 
@@ -104,14 +120,6 @@ events.on('basket:listChange', (data: { items: IProduct[], totalPrice: number, c
   basketView.setEmptyMessage(data.count > 0);
   basketView.toggleSubmitButton(data.count > 0);
   headerView.counter = data.count;
-});
-
-
-events.on('basket:open', () => {
-  const hasProducts = basketModel.getItemCount() > 0;
-  basketView.toggleSubmitButton(hasProducts);
-  basketView.setEmptyMessage(hasProducts);
-  modal.open(basketView.render());
 });
 
 events.on('product:delete', (data: { id: string }) => {
@@ -123,55 +131,74 @@ events.on('basket:placeOrder', () => {
   modal.setContent(formOrderView.render());
 });
 
-//forms 
-events.on('form:paymentChanged', ({ payment }: { payment: TPayment }) => buyerModel.setPayment(payment));
-events.on('form:addressChanged', ({ address }: { address: string }) => buyerModel.setAddress(address));
-events.on('form:orderSubmit', () => modal.setContent(formContactsView.render()));
-events.on('form:emailChanged', ({ email }: { email: string }) => buyerModel.setEmail(email));
-events.on('form:phoneChanged', ({ phone }: { phone: string }) => buyerModel.setPhone(phone));
-
-events.on('buyer:change', ({field}:{field: string}) => {
-  const errorsRecord: Record<string, boolean> = {};
-  const errors = buyerModel.validate();
-  Object.keys(errors).forEach(key => {
-    errorsRecord[key] = !!errors[key as keyof typeof errors];
-  });
-
-  const selectedPayment = buyerModel.getData().payment;
-
-if (field === 'payment' || field === 'address') {
-  formOrderView.togglePaymentButtonStatus(Boolean(selectedPayment) ? selectedPayment : null); 
-  if (selectedPayment) formOrderView.togglePaymentButtonStatus(selectedPayment);
-} 
+//forms
+events.on('payment:changed', (data: { payment: TPayment }) => {
+  buyerModel.setPayment(data.payment)
 });
 
-events.on('form:orderSubmit', () => {
-  modal.setContent(formContactsView.render());
+events.on('address:changed', (data: { address: string }) => {
+  buyerModel.setAddress(data.address)
 });
 
-events.on('form:contactsSubmit', () => {
+events.on('form:email:changed', (data: { email: string }) => {
+  buyerModel.setEmail(data.email);
+});
+
+events.on('form:phone:changed', (data: { phone: string }) => {
+  buyerModel.setPhone(data.phone);
+});
+
+events.on('buyer:change', (data: { field: string})  => {
+  const payment = buyerModel.getData().payment
+  const errors = buyerModel.validate()
+
+  if (data.field === 'payment' || data.field === 'address') {
+    const isValid = formOrderView.checkIsFormValid(errors)
+    formOrderView.toggleSubmitButton(isValid)
+    formOrderView.toggleErrors(!isValid)
+    formOrderView.togglePaymentButtonStatus(payment)
+  } else if (data.field === 'email' || data.field === 'phone') {
+    const isValid = formContactsView.checkIsFormValid(errors)
+    formContactsView.toggleSubmitButton(isValid)
+    formContactsView.toggleErrors(!isValid)
+  }
+});
+
+events.on('form:order:submit', () => {
+  modal.setContent(formContactsView.render())
+});
+
+events.on('form:contacts:submit', () => {
   const buyerData = buyerModel.getData();
-  const purchases = basketModel.getItems();
-  const total = basketModel.getTotalPrice();
+  const items = basketModel.getItems();
 
-  modal.setContent(document.createElement('div'));
+  const orderData: TOrder = {
+    payment: buyerData.payment,
+    address: buyerData.address,
+    phone: buyerData.phone,
+    email: buyerData.email,
+    total: basketModel.getTotalPrice(),
+    items: items.map((p: IProduct) => p.id),
+  };
 
-  // имитация запроса к серверу
-  Promise.resolve({ success: true }).then(() => {
-    successView.totalPrice = total;
-    modal.open(successView.render());
-    basketModel.clear();
-    buyerModel.clear();
-    headerView.counter = basketModel.getItemCount();
-    formOrderView.resetFormState();
-  });
-});
-
-events.on('success:confirm', () => modal.close());
+  serverService.sendOrder(orderData)
+    .then((data) => {
+      basketModel.clear();
+      buyerModel.clear();
+      headerView.counter = basketModel.getItemCount();
+      successView.totalPrice = data.total
+      modal.setContent(successView.render());
+      formOrderView.resetFormState();
+      formContactsView.resetFormState();
+    })
+    .catch((err: unknown) => console.error('Не удалось разместить заказ: ', err));
+})
 
 events.on('modal:close', () => {
   productsModel.clearSelectedProduct()
   modal.close();
 });
+
+events.on('success:click', () => modal.close())
 
 

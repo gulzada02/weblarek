@@ -1,32 +1,34 @@
-import { EventEmitter } from '../base/Events';
-import { IBuyer } from '../../types';
+import { IEvents } from '../base/Events';
+import { IBuyer, IValidationErrors, TPayment } from '../../types';
 
-export type TPayment = 'card' | 'cash';
+export class Buyer {
+  private payment: TPayment;
+  private email: string = '';
+  private phone: string = '';
+  private address: string = '';
 
-export class Buyer extends EventEmitter {
-  private payment: TPayment | null = null;
-  private email = '';
-  private phone = '';
-  private address = '';
+  constructor(private events: IEvents){
+    this.payment = '';
+  }
 
   setPayment(payment: TPayment): void {
     this.payment = payment;
-    this.emit('buyer:change', { field: 'payment' });
+    this.events.emit('buyer:change', { field: 'payment' });
   }
 
   setEmail(email: string): void {
     this.email = email;
-    this.emit('buyer:change', { field: 'email' });
+    this.events.emit('buyer:change', { field: 'email' });
   }
 
   setPhone(phone: string): void {
     this.phone = phone;
-    this.emit('buyer:change', { field: 'phone' });
+    this.events.emit('buyer:change', { field: 'phone' });
   }
 
   setAddress(address: string): void {
     this.address = address;
-    this.emit('buyer:change', { field: 'address' });
+    this.events.emit('buyer:change', { field: 'address' });
   }
 
   getData(): IBuyer {
@@ -39,19 +41,19 @@ export class Buyer extends EventEmitter {
   }
 
   clear(): void {
-    this.payment = null;
+    this.payment = '';
     this.email = '';
     this.phone = '';
     this.address = '';
-    this.emit('buyer:change', { field: 'all' });
+    this.events.emit('buyer:change', { field: 'all' });
   }
 
-  validate(): Partial<Record<keyof IBuyer, string>> {
-    const errors: Partial<Record<keyof IBuyer, string>> = {};
-    if (!this.payment) errors.payment = 'Не выбран вид оплаты';
-    if (!this.email) errors.email = 'Укажите email';
-    if (!this.phone) errors.phone = 'Укажите телефон';
-    if (!this.address) errors.address = 'Укажите адрес';
-    return errors;
+  validate(): IValidationErrors {
+    const errors: IValidationErrors = {}
+    if (!this.payment) { errors.payment = 'Укажите способ оплаты' }
+    if (!this.address) { errors.address = 'Укажите адрес' }
+    if (!this.phone) { errors.phone = 'Укажите телефон' }
+    if (!this.email) { errors.email = 'Укажите email' }
+    return errors
   }
 }

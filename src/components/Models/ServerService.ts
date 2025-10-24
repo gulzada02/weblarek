@@ -1,5 +1,5 @@
-import { IApi } from '../../types';
-import { IProduct, IOrderRequest } from '../../types';
+import { IApi, TOrder, TOrderResponse } from '../../types';
+import { IProduct } from '../../types';
 
 export class ServerService {
   private api: IApi;
@@ -13,8 +13,8 @@ export class ServerService {
   return Array.isArray(response) ? response : response.items;
 }
 
-  async sendOrder(order: IOrderRequest): Promise<void> {
-    await this.api.post('/order/', order);
+  async sendOrder(order: TOrder): Promise<TOrderResponse> {
+    return await this.api.post('/order/', order);
   }
 }
 
