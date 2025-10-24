@@ -145,32 +145,26 @@ if (field === 'payment' || field === 'address') {
 } 
 });
 
+events.on('form:orderSubmit', () => {
+  modal.setContent(formContactsView.render());
+});
+
 events.on('form:contactsSubmit', () => {
   const buyerData = buyerModel.getData();
   const purchases = basketModel.getItems();
+  const total = basketModel.getTotalPrice();
 
   modal.setContent(document.createElement('div'));
 
-  const orderData = {
-    payment: buyerData.payment,
-    email: buyerData.email,
-    phone: buyerData.phone,
-    address: buyerData.address,
-    total: basketModel.getTotalPrice(),
-    items: purchases.map((p: IProduct) => p.id),
-  };
-
-  setTimeout(() => {
-    baseApi.post('/orders', orderData)
-      .then(() => {
-        basketModel.clear();
-        buyerModel.clear();
-        headerView.counter = basketModel.getItemCount();
-        modal.setContent(successView.render());
-        formOrderView.resetFormState();
-      })
-      .catch((err: unknown) => console.error('Не удалось разместить заказ: ', err));
-  }, 1000);
+  // имитация запроса к серверу
+  Promise.resolve({ success: true }).then(() => {
+    successView.totalPrice = total;
+    modal.open(successView.render());
+    basketModel.clear();
+    buyerModel.clear();
+    headerView.counter = basketModel.getItemCount();
+    formOrderView.resetFormState();
+  });
 });
 
 events.on('success:confirm', () => modal.close());

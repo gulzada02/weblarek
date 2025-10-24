@@ -24,9 +24,7 @@ export class CardForPreview extends BaseCard {
 
   set image(src: string) {
   this.setImage(
-      this.imageElement,
-      CDN_URL + `${src}`,
-      this._title.textContent
+      this.imageElement, CDN_URL + `${src.slice(0, -3)+'png'}`,
     )
   }
 

@@ -1,6 +1,5 @@
 import { Component } from "../base/Component";
 import { ensureElement } from "../../utils/utils";
-import { AppEvents } from "../../utils/constants";
 import { ISuccessData } from "../../types";
 import { IEvents } from "../base/Events";
 
@@ -15,7 +14,7 @@ export class SuccessView extends Component<ISuccessData>{
     this._confirmButton = ensureElement<HTMLButtonElement>('.order-success__close', container)
 
     this._confirmButton.addEventListener('click', () => {
-      this._events.emit(AppEvents.SUCCESS_CONFIRM)
+      this._events.emit('success:confirm')
     })
   }
 
