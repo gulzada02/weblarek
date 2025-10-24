@@ -93,7 +93,6 @@ events.on('product:selected:set', (product: IProduct) => {
 events.on('product:submit', (data: { id: string }) => {
   const product = productsModel.getProductById(data.id);
   if (!product) return;
-
   if (!basketModel.hasItem(data.id)) basketModel.addItem(product);
   else basketModel.removeItem(data.id);
 

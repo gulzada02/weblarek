@@ -34,7 +34,7 @@ export class Modal  extends Component<IModalData> {
     this.setContent(content);
     this.container.classList.add('modal_active');
     document.addEventListener('keydown', this._handleEscape);
-    document.body.classList.add('no-scroll');
+    // document.body.classList.add('no-scroll');
   }
 
   setContent(content: HTMLElement): void {
@@ -44,6 +44,6 @@ export class Modal  extends Component<IModalData> {
   close(): void {
     this.container.classList.remove('modal_active');
     document.removeEventListener('keydown', this._handleEscape);
-    document.body.classList.remove('no-scroll');
+    // document.body.classList.remove('no-scroll');
     }
 }

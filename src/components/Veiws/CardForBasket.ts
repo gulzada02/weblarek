@@ -13,7 +13,7 @@ export class CardForBasket extends BaseCard {
     this.deleteBtn = ensureElement<HTMLButtonElement>('.basket__item-delete', container)
 
     this.deleteBtn.addEventListener('click', () => {
-      this.events.emit('product:delete', {id: this.id})
+      this.events.emit('product:delete', {id: this._id})
     })
   }
 

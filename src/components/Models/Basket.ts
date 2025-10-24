@@ -20,7 +20,6 @@ export class Basket  {
 
   removeItem(productId: string): void {
     this.items = this.items.filter(item => item.id !== productId);
-
     this.events.emit('basket:listChange', {
       items: this.items,
       totalPrice: this.getTotalPrice(),

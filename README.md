@@ -98,17 +98,16 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
-##  Архитектура
+# Web-Larёk
 
-Приложение разделено на три уровня:
+Интерактивное веб-приложение интернет-магазина, реализованное на TypeScript (MVP-архитектура) с использованием событийной модели и шаблонов.
 
-* **Models (модели данных)** — логика и хранение данных (`Products`, `Basket`, `Buyer`)
-* **Views (представления)** — интерфейс и шаблоны (`BaseCard`, `CardCatalog`, `CardPreview`, `CardBasket`, `Modal`, `Gallery`, `Success`)
-* **Controllers / main.ts** — связывает события и модели, управляет потоком данных
+## Архитектура
+* **Models (модели данных)** — бизнес-логика и хранение данных (`Products`, `Basket`, `Buyer`, `ServerService`)
+* **Views (представления)** — отображение данных, шаблоны и обработка DOM (`BaseCard`, `CardForCatalog`, `CardForPreview`, `CardForBasket`, `Modal`, `GalleryView`, `HeaderView`, `BasketView`, `SuccessView`, `FormOrderView`, `FormContactsView`)
+* **Controllers / main.ts** — связывает модели и представления через `EventEmitter`, управляет событиями и потоком данных.
 
----
-
-##  Интерфейсы
+## Интерфейсы
 
 ### `IProduct`
 
@@ -123,15 +122,6 @@ interface IProduct {
 }
 ```
 
-### `BasketItem`
-
-```ts
-interface BasketItem {
-  product: Product;
-  quantity: number;
-}
-```
-
 ### `IBuyer`
 
 ```ts
@@ -143,37 +133,43 @@ interface IBuyer {
 }
 ```
 
----
-
-##  Классы
-
-### **Products**
-
-Модель для работы с товарами.
+### `TOrder`
 
 ```ts
-class Products {
-  private products: IProduct[];
-
-  constructor(products: IProduct[] = []) { ... }
-
-  setProducts(products: IProduct[]): void;
-  getProducts(): IProduct[];
-  getProductById(id: string): IProduct | undefined;
-}
+type TOrder = IBuyer & {
+  total: number;
+  items: string[];
+};
 ```
 
 ---
 
+## Классы моделей
+
+### **Products**
+
+Модель для хранения и управления списком товаров.
+
+```ts
+class Products {
+  private products: IProduct[] = [];
+  private selectedProduct: IProduct | null = null;
+
+  setProducts(products: IProduct[]): void;
+  getProducts(): IProduct[];
+  getProductById(id: string): IProduct | undefined;
+  setSelectedProduct(product: IProduct): void;
+  clearSelectedProduct(): void;
+}
+```
+
 ### **Basket**
 
-Модель корзины пользователя.
+Модель корзины пользователя. Управляет добавлением, удалением и подсчётом товаров.
 
 ```ts
 class Basket {
-  private items: IProduct[];
-
-  constructor() { ... }
+  private items: IProduct[] = [];
 
   getItems(): IProduct[];
   addItem(product: IProduct): void;
@@ -185,11 +181,9 @@ class Basket {
 }
 ```
 
----
-
 ### **Buyer**
 
-Хранит и валидирует данные покупателя.
+Хранит и валидирует данные покупателя. Генерирует события при изменении полей.
 
 ```ts
 class Buyer {
@@ -198,205 +192,207 @@ class Buyer {
   private phone: string;
   private address: string;
 
-  constructor() { ... }
-
   setPayment(payment: TPayment): void;
   setEmail(email: string): void;
   setPhone(phone: string): void;
   setAddress(address: string): void;
   getData(): IBuyer;
-  clear(): void;
   validate(): Partial<Record<keyof IBuyer, string>>;
+  clear(): void;
 }
 ```
 
----
-
 ### **ServerService**
 
-Слой взаимодействия с сервером.
+Слой взаимодействия с сервером через `Api`.
 
 ```ts
 class ServerService {
   constructor(private api: IApi) {}
 
   fetchProducts(): Promise<IProduct[]>;
-  sendOrder(order: IBuyer & { items: IProduct[] }): Promise<void>;
+  sendOrder(order: TOrder): Promise<{ total: number }>;
 }
 ```
 
 ---
 
+## Представления (Views)
 ### **BaseCard**
-
-Базовый класс для карточек товаров.
+Базовый класс карточки товара. Используется наследниками для разных контекстов.
 
 ```ts
 class BaseCard {
-  protected element: HTMLElement;
-  protected title: HTMLElement;
-  protected price: HTMLElement;
-  protected category: HTMLElement;
-  protected image: HTMLImageElement;
-
-  constructor(templateId: string) { ... }
-
   render(data: IProduct): HTMLElement;
   setText(element: HTMLElement, text: string): void;
   setImage(element: HTMLImageElement, src: string, alt?: string): void;
 }
 ```
 
-#### **CardCatalog**
+#### **CardForCatalog**
 
-Наследник BaseCard.
-Отображает карточку товара в каталоге и генерирует событие `card:select` при клике.
+Карточка в каталоге. Генерирует событие `product:select` при клике.
 
-#### **CardPreview**
+#### **CardForPreview**
 
-Наследник BaseCard.
-Отображает карточку в модальном окне, добавляет описание и кнопку «В корзину».
-Генерирует событие `basket:add`.
+Карточка в модальном окне предпросмотра. Добавляет описание и кнопку «В корзину» (`product:submit`).
 
-#### **CardBasket**
+#### **CardForBasket**
 
-Наследник BaseCard.
-Отображает карточку товара в корзине, добавляет кнопку удаления.
-Генерирует событие `basket:remove`.
-
----
-
-### **BaseForm**
-
-Родительский класс для всех форм.
-
-```ts
-class BaseForm {
-  constructor(formElement: HTMLFormElement) { ... }
-
-  getFormData(): Record<string, string>;
-  validate(): boolean;
-  setErrors(errors: Record<string, string>): void;
-  clear(): void;
-}
-```
-
-#### **OrderForm**
-
-Отвечает за выбор способа оплаты и ввод адреса.
-После успешной проверки вызывает `order:submit`.
-
-#### **ContactsForm**
-
-Обрабатывает ввод email и телефона.
-После успешной проверки вызывает `contacts:submit`.
+Карточка в корзине. Отображает порядковый номер и кнопку удаления (`product:delete`).
 
 ---
 
 ### **Modal**
 
-Контейнер для отображения любого контента.
+Модальное окно для отображения карточек, корзины и форм.
 
 ```ts
 class Modal {
-  constructor(container: HTMLElement) {}
-
   open(content: HTMLElement): void;
   close(): void;
   setContent(content: HTMLElement): void;
 }
 ```
 
+Событие: `modal:close`.
+
 ---
 
-### **Gallery**
+### **GalleryView**
 
-Компонент для отображения списка карточек.
+Выводит карточки товаров на главной странице.
 
 ```ts
-class Gallery {
-  constructor(container: HTMLElement) {}
-
-  render(cards: HTMLElement[]): void;
+class GalleryView {
+  set galleryList(cards: HTMLElement[]): void;
   clear(): void;
 }
 ```
 
 ---
 
-### **Success**
+### **BasketView**
 
-Компонент для отображения успешного заказа.
-Использует шаблон `<template id="success">`.
-Генерирует событие `order:close` при нажатии на кнопку «За новыми покупками!».
+Отображает содержимое корзины и итоговую сумму.
+
+События:
+
+* `basket:open` — открыть корзину
+* `basket:listChange` — обновление списка
+* `basket:placeOrder` — переход к оформлению заказа
+
+---
+
+### **FormOrderView**
+
+Первый шаг оформления заказа — выбор способа оплаты и адреса.
+
+CSS-модификатор:
+`.button_alt-active` — активная кнопка выбора оплаты.
+
+События:
+
+* `payment:changed`
+* `address:changed`
+* `form:order:submit`
+
+---
+
+### **FormContactsView**
+
+Второй шаг — ввод контактных данных.
+
+События:
+
+* `form:email:changed`
+* `form:phone:changed`
+* `form:contacts:submit`
+
+---
+
+### **SuccessView**
+
+Отображает сообщение об успешной покупке и сумму заказа.
+Событие `success:click` возвращает пользователя в каталог.
 
 ---
 
 ## Событийная модель
 
-Все компоненты связаны через экземпляр `EventEmitter`.
+Все взаимодействие между компонентами осуществляется через экземпляр `EventEmitter`.
 
-### Основные события:
+| Событие                | Описание                                |
+| ---------------------- | --------------------------------------- |
+| `products:change`      | Загрузка списка товаров                 |
+| `product:select`       | Выбор товара из каталога                |
+| `product:selected:set` | Открытие карточки предпросмотра         |
+| `product:submit`       | Добавление / удаление товара из корзины |
+| `basket:open`          | Открытие корзины                        |
+| `basket:listChange`    | Обновление содержимого корзины          |
+| `basket:placeOrder`    | Переход к оформлению заказа             |
+| `payment:changed`      | Изменение способа оплаты                |
+| `address:changed`      | Изменение адреса                        |
+| `form:order:submit`    | Отправка формы оплаты                   |
+| `form:contacts:submit` | Отправка контактной формы               |
+| `modal:close`          | Закрытие модального окна                |
+| `success:click`        | Завершение оформления заказа            |
 
-| Событие           | Описание                          |
-| ----------------- | --------------------------------- |
-| `card:select`     | Открытие карточки в предпросмотре |
-| `basket:add`        | Добавление товара в корзину       |
-| `basket:remove`     | Удаление товара из корзины        |
-| `order:submit`    | Отправка формы заказа             |
-| `contacts:submit` | Отправка контактной формы         |
-| `modal:close`     | Закрытие модального окна          |
-| `order:close`     | Завершение оформления заказа      |
+---
 
+## Логика main.ts
 
-#### Модальное окно (Modal)
-Назначение: отображение всплывающих окон для просмотра товара, корзины, оформления заказа, сообщений об успехе.
-CSS-модификаторы:
-`.modal_active` — показывает/скрывает модальное окно.
-##### Элементы DOM:
-`modalElement` — корневой .modal.
-`closeButton` — кнопка закрытия (.modal__close).
-`contentElement` — контейнер для содержимого модального окна (.modal__content).
-##### События:
-`close`	Пользователь закрыл модальное окно (клик вне окна или крестик).
+`main.ts` объединяет все компоненты:
 
-##### CSS-модификаторы:
-Фон категории: `.card__category_[тип_категории]`
-Соответствие категорий задаётся объектом categoryMap из src/utils/constants.ts:
-`const categoryClass = categoryMap[product.category]`
-`categoryElement.classList.add(categoryClass)`
+1. Инициализирует модели (`Products`, `Basket`, `Buyer`, `ServerService`);
+2. Создаёт представления и связывает их с шаблонами (`<template>` в HTML);
+3. Подписывается на события через `EventEmitter`;
+4. Управляет модальными окнами и многошаговой формой заказа.
 
-#### Элементы DOM:
-`cardElement` — корневой элемент карточки .card.
-`titleElement` — заголовок товара .card__title.
-`priceElement` — цена .card__price.
-`categoryElement` — категория .card__category.
-`imageElement` — изображение .card__image.
-`buttonElement` — кнопка «В корзину» или «Удалить из корзины» .card__button.
-##### События:
-`click`	Пользователь кликнул на карточку (просмотр подробностей).
-`add-to-basket`	Пользователь нажал кнопку «В корзину».
-`remove-from-basket`	Пользователь нажал кнопку «Удалить из корзины».
-#### Форма выбора оплаты (OrderForm)
-Назначение: выбор способа оплаты и адреса доставки на первом шаге оформления заказа.
-##### CSS-модификаторы:
-`.button_alt-active` — выделение выбранного способа оплаты.
-##### Элементы DOM:
-`formElement` — корневая форма .form.
-`paymentButtons` — кнопки выбора оплаты (.button.button_alt).
-`addressInput` — поле ввода адреса.
-`nextButton` — кнопка «Далее».
-`errorsElement` — контейнер для сообщений об ошибках .form__errors.
-##### События:
-`payment-selected`	Пользователь выбрал способ оплаты (активация кнопки).
-`form-next-step`	Пользователь нажал кнопку «Далее», форма валидна.
-#### Форма контактов (ContactsForm)
-Назначение: второй шаг оформления заказа — ввод почты и телефона.
-#### Элементы DOM:
-`formElement` — корневая форма .form.
-`emailInput` — поле ввода email.
-`phoneInput` — поле ввода телефона.
-`payButton` — кнопка «Оплатить».
-`errorsElement` — контейнер для сообщений об ошибках .form__errors.
-##### События:
-`form-submit`	Пользователь нажал кнопку «Оплатить», форма валидна.
+---
+
+## Используемые технологии
+
+* **TypeScript** — строгая типизация и ООП
+* **HTML шаблоны (`<template>`)**
+* **SCSS** — стилизация компонентов
+* **Vite** — сборка проекта
+* **MVP-архитектура** — разделение логики, данных и представления
+* **EventEmitter** — централизованная событийная шина
+
+---
+
+## Структура проекта
+
+```
+src/
+│
+├── components/
+│   ├── base/
+│   │   ├── Api.ts
+│   │   ├── Events.ts
+│   │   └── Component.ts
+│   ├── Models/
+│   │   ├── Products.ts
+│   │   ├── Basket.ts
+│   │   ├── Buyer.ts
+│   │   └── ServerService.ts
+│   └── Views/
+│       ├── Cards/
+│       ├── Forms/
+│       ├── Modal.ts
+│       ├── GalleryView.ts
+│       ├── BasketView.ts
+│       ├── SuccessView.ts
+│       └── HeaderView.ts
+│
+├── utils/
+│   ├── constants.ts
+│   └── utils.ts
+│
+├── scss/
+│   └── styles.scss
+│
+├── index.html
+└── main.ts
+```
