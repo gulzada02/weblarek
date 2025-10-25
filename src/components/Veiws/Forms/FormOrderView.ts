@@ -1,8 +1,7 @@
 import { BaseForm } from "../Forms/BaseForm";
 import { IEvents } from "../../base/Events";
 import { ensureElement } from "../../../utils/utils";
-import { TPayment } from "../../../types";
-import { IValidationErrors } from "../../../types";
+import { TPayment, IValidationErrors } from "../../../types";
 
 export class FormOrderView extends BaseForm {
   private cardPayButton: HTMLButtonElement;
@@ -27,11 +26,10 @@ export class FormOrderView extends BaseForm {
     this.address.addEventListener('input', () => {
       this.events.emit('address:changed', { address: this.address.value });
     });
+  }
 
-    this.container.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.events.emit('form:order:submit');
-    });
+  protected onSubmit(): void {
+    this.events.emit('form:order:submit');
   }
 
   checkIsFormValid(errors: IValidationErrors): boolean {

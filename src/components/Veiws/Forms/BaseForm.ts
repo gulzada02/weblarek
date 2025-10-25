@@ -3,18 +3,26 @@ import { ensureElement } from "../../../utils/utils";
 import { IEvents } from "../../base/Events";
 import { IFormErrorData } from "../../../types";
 
-
 export abstract class BaseForm extends Component<IFormErrorData> {
   protected submitButton: HTMLButtonElement;
   protected error: HTMLElement;
 
-  constructor(container: HTMLElement, protected events: IEvents) {
+  constructor(protected container: HTMLElement, protected events: IEvents) {
     super(container);
+
     this.submitButton = ensureElement<HTMLButtonElement>('[type="submit"]', container);
     this.error = ensureElement<HTMLElement>('.form__errors', container);
+
+    // Общий обработчик сабмита
+    this.container.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.onSubmit();
+    });
   }
 
-  set errorText(text: string){
+  protected abstract onSubmit(): void;
+
+  set errorText(text: string) {
     this.error.textContent = text;
   }
 
@@ -22,8 +30,8 @@ export abstract class BaseForm extends Component<IFormErrorData> {
     this.submitButton.disabled = !enabled;
   }
 
-  toggleErrors(value: boolean):void {
-    this.error.classList.toggle('form__errors-active', value)
+  toggleErrors(value: boolean): void {
+    this.error.classList.toggle('form__errors-active', value);
   }
 
   resetFormState(): void {

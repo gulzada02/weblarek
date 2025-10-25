@@ -20,13 +20,12 @@ export class FormContactsView extends BaseForm {
     this.phoneInput.addEventListener('input', () => {
       this.events.emit('form:phone:changed', { phone: this.phoneInput.value });
     });
-
-    this.container.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.events.emit('form:contacts:submit');
-    });
   }
-  
+
+  protected onSubmit(): void {
+    this.events.emit('form:contacts:submit');
+  }
+
   checkIsFormValid(errors: IValidationErrors): boolean {
     this.errorText = errors.email || errors.phone || '';
     return !errors.email && !errors.phone;
