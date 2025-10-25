@@ -1,7 +1,8 @@
 import { BaseForm } from "../Forms/BaseForm";
 import { IEvents } from "../../base/Events";
 import { ensureElement } from "../../../utils/utils";
-import { TPayment, IValidationErrors } from "../../../types";
+import { TPayment } from "../../../types";
+// import { IValidationErrors } from "../../../types";
 
 export class FormOrderView extends BaseForm {
   private cardPayButton: HTMLButtonElement;
@@ -33,10 +34,10 @@ export class FormOrderView extends BaseForm {
     });
   }
 
-  checkIsFormValid(errors: IValidationErrors): boolean {
-    this.errorText = errors.payment || errors.address || '';
-    return !errors.payment && !errors.address;
-  }
+  // checkIsFormValid(errors: IValidationErrors): boolean {
+  //   this.errorText = errors.payment || errors.address || '';
+  //   return !errors.payment && !errors.address;
+  // }
 
   resetFormState(): void {
     super.resetFormState();

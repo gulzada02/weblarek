@@ -50,12 +50,14 @@ const formContactsView = new FormContactsView(cloneTemplate(formContactsTemplate
 const baseApi = new Api(API_URL);
 const serverService = new ServerService(baseApi);
 
+// Загрузка товаров
 serverService.fetchProducts()
   .then((products: IProduct[]) => {
     productsModel.setProducts(products);
   })
   .catch((err: unknown) => console.error('Не удалось загрузить товары: ', err));
 
+// Отображение каталога
 events.on('products:change', (products: IProduct[]) => {
   const cards = products.map(product => {
     const card = new CardForCatalog(cloneTemplate(cardForCatalogTemplate), events);
@@ -66,11 +68,13 @@ events.on('products:change', (products: IProduct[]) => {
   galleryView.galleryList = cards;
 });
 
+// Выбор товара
 events.on('product:select', (data: { id: string }) => {
   const product = productsModel.getProductById(data.id);
   if (product) productsModel.setSelectedProduct(product);
 });
 
+// Отображение превью товара в модальном окне
 events.on('product:selected:set', (product: IProduct) => {
   const card = new CardForPreview(cloneTemplate(cardForPreviewTemplate), events);
 
@@ -83,6 +87,7 @@ events.on('product:selected:set', (product: IProduct) => {
   modal.open(card.render(product));
 });
 
+// Добавление/удаление товара в корзине
 events.on('product:submit', (data: { id: string }) => {
   const product = productsModel.getProductById(data.id);
   if (!product) return;
@@ -92,6 +97,7 @@ events.on('product:submit', (data: { id: string }) => {
   modal.close();
 });
 
+// Открытие корзины
 events.on('basket:open', () => {
   const hasProducts = basketModel.getItemCount() > 0;
   basketView.toggleSubmitButton(hasProducts);
@@ -99,6 +105,7 @@ events.on('basket:open', () => {
   modal.open(basketView.render());
 });
 
+// Обновление списка корзины
 events.on('basket:listChange', (data: { items: IProduct[], totalPrice: number, count: number }) => {
   const cards = data.items.map((product: IProduct, index: number) => {
     const card = new CardForBasket(cloneTemplate(cardForBasketTemplate), events);
@@ -113,67 +120,73 @@ events.on('basket:listChange', (data: { items: IProduct[], totalPrice: number, c
   headerView.counter = data.count;
 });
 
+// Удаление товара из корзины
 events.on('product:delete', (data: { id: string }) => {
   const product = productsModel.getProductById(data.id);
   if(product) basketModel.removeItem(product.id);
 });
 
+// Переход к форме заказа
 events.on('basket:placeOrder', () => {
   modal.setContent(formOrderView.render());
 });
 
-// Формы и валидация через buyerModel.validate() 
+// Изменения данных покупателя
 events.on('payment:changed', (data: { payment: TPayment }) => {
   buyerModel.setPayment(data.payment);
+  handleBuyerChange();
 });
 
 events.on('address:changed', (data: { address: string }) => {
   buyerModel.setAddress(data.address);
+  handleBuyerChange();
 });
 
 events.on('form:email:changed', (data: { email: string }) => {
   buyerModel.setEmail(data.email);
+  handleBuyerChange();
 });
 
 events.on('form:phone:changed', (data: { phone: string }) => {
   buyerModel.setPhone(data.phone);
+  handleBuyerChange();
 });
 
-events.on('buyer:change', (data: { field: string }) => {
-  const payment = buyerModel.getData().payment;
+// Универсальная функция для обновления состояния форм
+function handleBuyerChange() {
   const errors = buyerModel.validate();
+  const buyerData = buyerModel.getData();
 
-  if (data.field === 'payment' || data.field === 'address') {
-    const isValid = formOrderView.checkIsFormValid(errors);
-    formOrderView.toggleSubmitButton(isValid);
-    formOrderView.toggleErrors(!isValid);
-    formOrderView.togglePaymentButtonStatus(payment);
-  } else if (data.field === 'email' || data.field === 'phone') {
-    const isFormValid = formContactsView.checkIsFormValid(errors); 
-    formContactsView.toggleSubmitButton(isFormValid);
-    formContactsView.toggleErrors(!isFormValid);
-  }
-});
+  // Форма заказа
+  const isOrderFormValid = !errors.payment && !errors.address;
+  formOrderView.toggleSubmitButton(isOrderFormValid);
+  formOrderView.toggleErrors(!isOrderFormValid);
+  formOrderView.togglePaymentButtonStatus(buyerData.payment);
 
+  // Форма контактов
+  const isContactsFormValid = !errors.email && !errors.phone;
+  formContactsView.toggleSubmitButton(isContactsFormValid);
+  formContactsView.toggleErrors(!isContactsFormValid);
+}
 
 // Сабмит формы заказа
 events.on('form:order:submit', () => {
   const errors = buyerModel.validate();
-  const isValid = formOrderView.checkIsFormValid(errors);
+  const isOrderFormValid = !errors.payment && !errors.address;
 
-  if (isValid) {
+  if (isOrderFormValid) {
     modal.setContent(formContactsView.render());
   } else {
     formOrderView.toggleErrors(true);
   }
 });
 
-// Сабмит формы контактов
+// Сабмит формы контактов и отправка заказа
 events.on('form:contacts:submit', () => {
   const errors = buyerModel.validate();
-  const isValid = formContactsView.checkIsFormValid(errors);
+  const isContactsFormValid = !errors.email && !errors.phone;
 
-  if (!isValid) {
+  if (!isContactsFormValid) {
     formContactsView.toggleErrors(true);
     return;
   }
@@ -203,6 +216,7 @@ events.on('form:contacts:submit', () => {
     .catch((err: unknown) => console.error('Не удалось разместить заказ: ', err));
 });
 
+// Закрытие модального окна
 events.on('modal:close', () => {
   productsModel.clearSelectedProduct();
 });

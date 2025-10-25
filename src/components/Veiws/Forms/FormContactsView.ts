@@ -1,7 +1,7 @@
 import { BaseForm } from "../Forms/BaseForm";
 import { EventEmitter } from "../../base/Events";
 import { ensureElement } from "../../../utils/utils";
-import { IValidationErrors } from "../../../types";
+// import { IValidationErrors } from "../../../types";
 
 export class FormContactsView extends BaseForm {
   private emailInput: HTMLInputElement;
@@ -27,10 +27,10 @@ export class FormContactsView extends BaseForm {
     });
   }
 
-  checkIsFormValid(errors: IValidationErrors): boolean {
-    this.errorText = errors.email || errors.phone || '';
-    return !errors.email && !errors.phone;
-  }
+  // checkIsFormValid(errors: IValidationErrors): boolean {
+  //   this.errorText = errors.email || errors.phone || '';
+  //   return !errors.email && !errors.phone;
+  // }
 
   resetFormState(): void {
     this.emailInput.value = '';
