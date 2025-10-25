@@ -26,7 +26,7 @@ export class FormContactsView extends BaseForm {
       this.events.emit('form:contacts:submit');
     });
   }
-
+  
   // checkIsFormValid(errors: IValidationErrors): boolean {
   //   this.errorText = errors.email || errors.phone || '';
   //   return !errors.email && !errors.phone;

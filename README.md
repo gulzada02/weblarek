@@ -101,10 +101,8 @@ Presenter - презентер содержит основную логику п
 
 ## Интерфейсы
 
-### **IProduct**
-
-```typescript
-interface IProduct {
+### IProduct
+`interface IProduct` {
   id: string;
   description: string;
   image: string;
@@ -112,254 +110,154 @@ interface IProduct {
   category: string;
   price: number | null;
 }
-```
 
-### **IBuyer**
-
-```typescript
-interface IBuyer {
+### IBuyer
+`interface IBuyer` {
   payment: TPayment;
   email: string;
   phone: string;
   address: string;
 }
-```
 
-### **TOrder**
-
-```typescript
-type TOrder = IBuyer & {
+### TOrder
+`type TOrder = IBuyer &` {
   total: number;
   items: string[];
 };
-```
 
-## Классы моделей
+## Модели
 
-### **Products**
+### Products
+Хранит список товаров и выбранный товар.
 
-Модель для хранения и управления списком товаров.
+Свойства:
+`private products: IProduct[]` — массив товаров
+`private selectedProduct: IProduct | null` — текущий выбранный товар
 
-**Поля класса:**
-- `private products: IProduct[] = []` - массив товаров
-- `private selectedProduct: IProduct | null = null` - выбранный товар для просмотра
+Методы:
+`setProducts(products: IProduct[]): void` — установить список товаров
+`getProducts(): IProduct[]` — вернуть все товары
+`getProductById(id: string): IProduct | undefined` — найти товар по ID
+`setSelectedProduct(product: IProduct): void` — выбрать товар для просмотра
+`clearSelectedProduct(): void` — очистить выбранный товар
 
-**Методы класса:**
-- `setProducts(products: IProduct[]): void` - устанавливает список товаров
-- `getProducts(): IProduct[]` - возвращает список всех товаров
-- `getProductById(id: string): IProduct | undefined` - возвращает товар по идентификатору
-- `setSelectedProduct(product: IProduct): void` - устанавливает выбранный товар для детального просмотра
-- `clearSelectedProduct(): void` - очищает выбранный товар
+### Basket
+Управляет корзиной: добавление, удаление, подсчет стоимости.
 
-### **Basket**
+Свойства:
+`private items: IProduct[]` — товары в корзине
 
-Модель корзины пользователя. Управляет добавлением, удалением и подсчётом товаров.
+Методы:
+`getItems(): IProduct[]` — список товаров
+`addItem(product: IProduct): void` — добавить товар
+`removeItem(productId: string): void` — удалить товар по ID
+`clear(): void` — очистить корзину
+`getTotalPrice(): number` — сумма всех товаров
+`getItemCount(): number` — количество товаров
+`hasItem(productId: string): boolean` — проверка наличия товара
 
-**Поля класса:**
-- `private items: IProduct[] = []` - массив товаров в корзине
+### Buyer
+Хранит и валидирует данные покупателя.
 
-**Методы класса:**
-- `getItems(): IProduct[]` - возвращает список товаров в корзине
-- `addItem(product: IProduct): void` - добавляет товар в корзину
-- `removeItem(productId: string): void` - удаляет товар из корзины по идентификатору
-- `clear(): void` - полностью очищает корзину
-- `getTotalPrice(): number` - вычисляет общую стоимость товаров в корзине
-- `getItemCount(): number` - возвращает количество товаров в корзине
-- `hasItem(productId: string): boolean` - проверяет наличие товара в корзине
+Свойства:
+`private payment: TPayment | null` — способ оплаты
+`private email: string` — email
+`private phone: string` — телефон
+`private address: string` — адрес доставки
 
-### **Buyer**
+Методы:
+`setPayment(payment: TPayment): void` — установить оплату
+`setEmail(email: string): void` — установить email
+`setPhone(phone: string): void` — установить телефон
+`setAddress(address: string): void` — установить адрес
+`getData(): IBuyer` — получить все данные
+`validate(): Partial<Record<keyof IBuyer, string>>` — проверка данных, возвращает ошибки
+`clear(): void` — очистка данных
 
-Хранит и валидирует данные покупателя. Генерирует события при изменении полей.
+### ServerService
+Сервис для работы с API.
 
-**Поля класса:**
-- `private payment: TPayment | null` - способ оплаты
-- `private email: string` - email покупателя
-- `private phone: string` - телефон покупателя
-- `private address: string` - адрес доставки
+Конструктор:
+`constructor(private api: IApi)`
+`api` — экземпляр `Api` для запросов
 
-**Методы класса:**
-- `setPayment(payment: TPayment): void` - устанавливает способ оплаты
-- `setEmail(email: string): void` - устанавливает email
-- `setPhone(phone: string): void` - устанавливает телефон
-- `setAddress(address: string): void` - устанавливает адрес
-- `getData(): IBuyer` - возвращает все данные покупателя
-- `validate(): Partial<Record<keyof IBuyer, string>>` - валидирует данные и возвращает объект с ошибками
-- `clear(): void` - очищает все данные покупателя
-
-### **ServerService**
-
-Слой взаимодействия с сервером через `Api`.
-
-**Конструктор:**
-```typescript
-constructor(private api: IApi)
-```
-- `api` - экземпляр класса Api для выполнения запросов
-
-**Методы класса:**
-- `fetchProducts(): Promise<IProduct[]>` - загружает список товаров с сервера
-- `sendOrder(order: TOrder): Promise<{ total: number }>` - отправляет заказ на сервер и возвращает информацию о заказе
+Методы:
+`fetchProducts(): Promise<IProduct[]>` — загрузка товаров с сервера
+`sendOrder(order: TOrder): Promise<{ total: number }>` — отправка заказа
 
 ## Представления (Views)
 
-### **BaseCard**
+### BaseCard
+Базовая карточка товара.
 
-Базовый класс карточки товара. Используется наследниками для разных контекстов.
+Методы:
+`render(data: IProduct): HTMLElement` — отображает товар
+`setText(element: HTMLElement, text: string): void` — устанавливает текст
+`setImage(element: HTMLImageElement, src: string, alt?: string): void` — устанавливает изображение
 
-**Методы класса:**
-- `render(data: IProduct): HTMLElement` - отображает карточку товара с переданными данными
-- `setText(element: HTMLElement, text: string): void` - устанавливает текстовое содержимое элемента
-- `setImage(element: HTMLImageElement, src: string, alt?: string): void` - устанавливает изображение для элемента
+#### Наследники BaseCard
 
-#### **CardForCatalog**
+CardForCatalog — карточка в каталоге (`product:select`)
+CardForPreview — карточка в модальном окне (`product:submit`)
+CardForBasket — карточка в корзине (`product:delete`)
 
-Карточка товара в каталоге. Наследуется от `BaseCard`.
+### BaseForm
+Базовый класс для форм в приложении. Наследуется от `Component<IFormErrorData>`. 
+Отвечает за управление состоянием кнопки отправки, отображение ошибок и сброс состояния формы.  
 
-**События:**
-- `product:select` - генерируется при клике на карточку для выбора товара
+Конструктор:
+`constructor(container: HTMLElement, protected events: IEvents)`
+`container — DOM-элемент формы`
+`events` — объект для работы с событиями (EventEmitter)
 
-#### **CardForPreview**
+Свойства:
+`protected submitButton: HTMLButtonElement` — кнопка отправки формы
+`protected error: HTMLElement` — элемент для отображения ошибок
 
-Карточка товара в модальном окне предпросмотра. Наследуется от `BaseCard`. Добавляет описание товара и кнопку «В корзину».
+Сеттеры:
+`set errorText(text: string)` — устанавливает текст ошибки в элемент .form__errors
 
-**События:**
-- `product:submit` - генерируется при нажатии кнопки добавления в корзину
+Методы:
+`toggleSubmitButton(enabled: boolean): void` — включает или отключает кнопку отправки
+`toggleErrors(value: boolean): void` — показывает или скрывает блок с ошибками `.form__errors-active`
+`resetFormState(): void` — сбрасывает текст ошибки и блокирует кнопку отправки
 
-#### **CardForBasket**
+#### Наследники BaseForm
+FormOrderView — форма заказа (`payment:changed`, `address:changed`, `form:order:submit`)
+FormContactsView — контактная форма (`form:email:changed`, `form:phone:changed`, `form:contacts:submit`)
 
-Карточка товара в корзине. Наследуется от `BaseCard`. Отображает порядковый номер товара и кнопку удаления.
+### Modal
+Модальное окно
 
-**События:**
-- `product:delete` - генерируется при нажатии кнопки удаления из корзины
+Методы:
+`open(content: HTMLElement): void` — открыть
+`close(): void` — закрыть
+`setContent(content: HTMLElement): void` — установить содержимое
 
-### **Modal**
+События:
+`modal:close`
 
-Модальное окно для отображения карточек товаров, корзины и форм.
+### Остальные представления
+GalleryView — отображает карточки (`galleryList`, `clear()`)
+BasketView — корзина (`basket:open`, `basket:listChange`, `basket:placeOrder`)
+FormOrderView — форма заказа (`payment:changed`, `address:changed`, `form:order:submit`)
+FormContactsView — контактная форма (`form:email:changed`, `form:phone:changed`, `form:contacts:submit`)
+SuccessView — сообщение об успешном заказе (`success:click`)
 
-**Методы класса:**
-- `open(content: HTMLElement): void` - открывает модальное окно с переданным содержимым
-- `close(): void` - закрывает модальное окно
-- `setContent(content: HTMLElement): void` - устанавливает содержимое модального окна
-
-**События:**
-- `modal:close` - генерируется при закрытии модального окна
-
-### **GalleryView**
-
-Отображает карточки товаров на главной странице.
-
-**Свойства класса:**
-- `set galleryList(cards: HTMLElement[]): void` - устанавливает список карточек для отображения в галерее
-
-**Методы класса:**
-- `clear(): void` - очищает галерею
-
-### **BasketView**
-
-Отображает содержимое корзины и итоговую сумму.
-
-**События:**
-- `basket:open` - открытие корзины
-- `basket:listChange` - обновление списка товаров в корзине
-- `basket:placeOrder` - переход к оформлению заказа
-
-### **FormOrderView**
-
-Первый шаг оформления заказа — выбор способа оплаты и адреса доставки.
-
-**CSS-модификатор:**
-- `.button_alt-active` - класс для активной кнопки выбора способа оплаты
-
-**События:**
-- `payment:changed` - изменение способа оплаты
-- `address:changed` - изменение адреса доставки
-- `form:order:submit` - отправка формы заказа
-
-### **FormContactsView**
-
-Второй шаг оформления заказа — ввод контактных данных покупателя.
-
-**События:**
-- `form:email:changed` - изменение email
-- `form:phone:changed` - изменение телефона
-- `form:contacts:submit` - отправка контактной формы
-
-### **SuccessView**
-
-Отображает сообщение об успешном оформлении заказа и сумму заказа.
-
-**События:**
-- `success:click` - возвращает пользователя в каталог после завершения заказа
 
 ## Событийная модель
+Все компоненты взаимодействуют через `EventEmitter`.
 
-Все взаимодействие между компонентами осуществляется через экземпляр `EventEmitter`.
-
-| Событие | Описание |
-|---------|-----------|
-| `products:change` | Загрузка списка товаров |
-| `product:select` | Выбор товара из каталога |
-| `product:selected:set` | Открытие карточки предпросмотра |
-| `product:submit` | Добавление / удаление товара из корзины |
-| `basket:open` | Открытие корзины |
-| `basket:listChange` | Обновление содержимого корзины |
-| `basket:placeOrder` | Переход к оформлению заказа |
-| `payment:changed` | Изменение способа оплаты |
-| `address:changed` | Изменение адреса доставки |
-| `form:order:submit` | Отправка формы оплаты и адреса |
-| `form:contacts:submit` | Отправка контактной формы |
-| `modal:close` | Закрытие модального окна |
-| `success:click` | Завершение оформления заказа |
-
-## Логика main.ts
-
-`main.ts` объединяет все компоненты приложения:
-
-1. Инициализирует модели (`Products`, `Basket`, `Buyer`, `ServerService`)
-2. Создаёт представления и связывает их с шаблонами (`<template>` в HTML)
-3. Подписывается на события через `EventEmitter`
-4. Управляет модальными окнами и многошаговой формой заказа
-
-## Используемые технологии
-
-- **TypeScript** — строгая типизация и ООП
-- **HTML шаблоны (`<template>`)** — для создания компонентов
-- **SCSS** — стилизация компонентов
-- **Vite** — сборка проекта
-- **MVP-архитектура** — разделение логики, данных и представления
-- **EventEmitter** — централизованная событийная шина
-
-## Структура проекта
-
-```
-src/
-│
-├── components/
-│   ├── base/
-│   │   ├── Api.ts
-│   │   ├── Events.ts
-│   │   └── Component.ts
-│   ├── Models/
-│   │   ├── Products.ts
-│   │   ├── Basket.ts
-│   │   ├── Buyer.ts
-│   │   └── ServerService.ts
-│   └── Views/
-│       ├── Cards/
-│       ├── Forms/
-│       ├── Modal.ts
-│       ├── GalleryView.ts
-│       ├── BasketView.ts
-│       ├── SuccessView.ts
-│       └── HeaderView.ts
-│
-├── utils/
-│   ├── constants.ts
-│   └── utils.ts
-│
-├── scss/
-│   └── styles.scss
-│
-├── index.html
-└── main.ts
-```
+`products:change`      | Загрузка товаров                
+`product:select`       | Выбор товара                    
+`product:selected:set` | Открытие карточки предпросмотра 
+`product:submit`       | Добавление/удаление из корзины  
+`basket:open`          | Открытие корзины                
+`basket:listChange`    | Обновление корзины              
+`basket:placeOrder`    | Переход к форме заказа          
+`payment:changed`      | Изменение способа оплаты        
+`address:changed`      | Изменение адреса доставки       
+`form:order:submit`    | Отправка формы заказа           
+`form:contacts:submit` | Отправка контактной формы       
+`modal:close`          | Закрытие модального окна        
+`success:click`        | Завершение заказа               

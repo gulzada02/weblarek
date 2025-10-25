@@ -213,7 +213,6 @@ events.on('form:phone:changed', (data: { phone: string }) => {
   formContactsView.toggleErrors(!isContactsFormValid);
 });
 
-
 // Сабмит формы заказа
 events.on('form:order:submit', () => {
   const errors = buyerModel.validate();
