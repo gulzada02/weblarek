@@ -120,13 +120,16 @@ Presenter - презентер содержит основную логику п
 }
 
 ### TOrder
-`type TOrder = IBuyer &` {
-  total: number;
+`type TOrder = ` {
+  payment: TPayment; 
+  email: string; 
+  phone: string; 
+  address: string; 
+  total: number; 
   items: string[];
-};
+}
 
 ## Модели
-
 ### Products
 Хранит список товаров и выбранный товар.
 
@@ -188,8 +191,7 @@ Presenter - презентер содержит основную логику п
 ## Представления (Views)
 
 ### BaseCard
-Базовая карточка товара.
-
+Базовый класс для карточек товаров.
 Методы:
 `render(data: IProduct): HTMLElement` — отображает товар
 `setText(element: HTMLElement, text: string): void` — устанавливает текст
@@ -202,7 +204,7 @@ CardForPreview — карточка в модальном окне (`product:sub
 CardForBasket — карточка в корзине (`product:delete`)
 
 ### BaseForm
-Базовый класс для форм в приложении. Наследуется от `Component<IFormErrorData>`. 
+Базовый класс для форм в приложении.  
 Отвечает за управление состоянием кнопки отправки, отображение ошибок и сброс состояния формы.  
 
 Конструктор:
@@ -215,7 +217,7 @@ CardForBasket — карточка в корзине (`product:delete`)
 `protected error: HTMLElement` — элемент для отображения ошибок
 
 Сеттеры:
-`set errorText(text: string)` — устанавливает текст ошибки в элемент .form__errors
+`set errorText(text: string)` — устанавливает текст ошибки в элемент `.form__errors`
 
 Методы:
 `toggleSubmitButton(enabled: boolean): void` — включает или отключает кнопку отправки
@@ -227,8 +229,7 @@ FormOrderView — форма заказа (`payment:changed`, `address:changed`,
 FormContactsView — контактная форма (`form:email:changed`, `form:phone:changed`, `form:contacts:submit`)
 
 ### Modal
-Модальное окно
-
+Компонент для работы с модальными окнами.
 Методы:
 `open(content: HTMLElement): void` — открыть
 `close(): void` — закрыть
