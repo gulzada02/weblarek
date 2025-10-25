@@ -134,40 +134,85 @@ events.on('basket:placeOrder', () => {
 // Изменения данных покупателя
 events.on('payment:changed', (data: { payment: TPayment }) => {
   buyerModel.setPayment(data.payment);
-  handleBuyerChange();
 });
 
 events.on('address:changed', (data: { address: string }) => {
   buyerModel.setAddress(data.address);
-  handleBuyerChange();
 });
 
 events.on('form:email:changed', (data: { email: string }) => {
   buyerModel.setEmail(data.email);
-  handleBuyerChange();
 });
 
 events.on('form:phone:changed', (data: { phone: string }) => {
   buyerModel.setPhone(data.phone);
-  handleBuyerChange();
 });
 
-// Универсальная функция для обновления состояния форм
-function handleBuyerChange() {
+// Изменения данных покупателя
+events.on('payment:changed', (data: { payment: TPayment }) => {
+  buyerModel.setPayment(data.payment);
+
   const errors = buyerModel.validate();
   const buyerData = buyerModel.getData();
 
-  // Форма заказа
   const isOrderFormValid = !errors.payment && !errors.address;
   formOrderView.toggleSubmitButton(isOrderFormValid);
   formOrderView.toggleErrors(!isOrderFormValid);
   formOrderView.togglePaymentButtonStatus(buyerData.payment);
 
-  // Форма контактов
   const isContactsFormValid = !errors.email && !errors.phone;
   formContactsView.toggleSubmitButton(isContactsFormValid);
   formContactsView.toggleErrors(!isContactsFormValid);
-}
+});
+
+events.on('address:changed', (data: { address: string }) => {
+  buyerModel.setAddress(data.address);
+
+  const errors = buyerModel.validate();
+  const buyerData = buyerModel.getData();
+
+  const isOrderFormValid = !errors.payment && !errors.address;
+  formOrderView.toggleSubmitButton(isOrderFormValid);
+  formOrderView.toggleErrors(!isOrderFormValid);
+  formOrderView.togglePaymentButtonStatus(buyerData.payment);
+
+  const isContactsFormValid = !errors.email && !errors.phone;
+  formContactsView.toggleSubmitButton(isContactsFormValid);
+  formContactsView.toggleErrors(!isContactsFormValid);
+});
+
+events.on('form:email:changed', (data: { email: string }) => {
+  buyerModel.setEmail(data.email);
+
+  const errors = buyerModel.validate();
+  const buyerData = buyerModel.getData();
+
+  const isOrderFormValid = !errors.payment && !errors.address;
+  formOrderView.toggleSubmitButton(isOrderFormValid);
+  formOrderView.toggleErrors(!isOrderFormValid);
+  formOrderView.togglePaymentButtonStatus(buyerData.payment);
+
+  const isContactsFormValid = !errors.email && !errors.phone;
+  formContactsView.toggleSubmitButton(isContactsFormValid);
+  formContactsView.toggleErrors(!isContactsFormValid);
+});
+
+events.on('form:phone:changed', (data: { phone: string }) => {
+  buyerModel.setPhone(data.phone);
+
+  const errors = buyerModel.validate();
+  const buyerData = buyerModel.getData();
+
+  const isOrderFormValid = !errors.payment && !errors.address;
+  formOrderView.toggleSubmitButton(isOrderFormValid);
+  formOrderView.toggleErrors(!isOrderFormValid);
+  formOrderView.togglePaymentButtonStatus(buyerData.payment);
+
+  const isContactsFormValid = !errors.email && !errors.phone;
+  formContactsView.toggleSubmitButton(isContactsFormValid);
+  formContactsView.toggleErrors(!isContactsFormValid);
+});
+
 
 // Сабмит формы заказа
 events.on('form:order:submit', () => {
