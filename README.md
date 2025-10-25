@@ -98,20 +98,12 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
-# Web-Larёk
-
-Интерактивное веб-приложение интернет-магазина, реализованное на TypeScript (MVP-архитектура) с использованием событийной модели и шаблонов.
-
-## Архитектура
-* **Models (модели данных)** — бизнес-логика и хранение данных (`Products`, `Basket`, `Buyer`, `ServerService`)
-* **Views (представления)** — отображение данных, шаблоны и обработка DOM (`BaseCard`, `CardForCatalog`, `CardForPreview`, `CardForBasket`, `Modal`, `GalleryView`, `HeaderView`, `BasketView`, `SuccessView`, `FormOrderView`, `FormContactsView`)
-* **Controllers / main.ts** — связывает модели и представления через `EventEmitter`, управляет событиями и потоком данных.
 
 ## Интерфейсы
 
-### `IProduct`
+### **IProduct**
 
-```ts
+```typescript
 interface IProduct {
   id: string;
   description: string;
@@ -122,9 +114,9 @@ interface IProduct {
 }
 ```
 
-### `IBuyer`
+### **IBuyer**
 
-```ts
+```typescript
 interface IBuyer {
   payment: TPayment;
   email: string;
@@ -133,16 +125,14 @@ interface IBuyer {
 }
 ```
 
-### `TOrder`
+### **TOrder**
 
-```ts
+```typescript
 type TOrder = IBuyer & {
   total: number;
   items: string[];
 };
 ```
-
----
 
 ## Классы моделей
 
@@ -150,217 +140,194 @@ type TOrder = IBuyer & {
 
 Модель для хранения и управления списком товаров.
 
-```ts
-class Products {
-  private products: IProduct[] = [];
-  private selectedProduct: IProduct | null = null;
+**Поля класса:**
+- `private products: IProduct[] = []` - массив товаров
+- `private selectedProduct: IProduct | null = null` - выбранный товар для просмотра
 
-  setProducts(products: IProduct[]): void;
-  getProducts(): IProduct[];
-  getProductById(id: string): IProduct | undefined;
-  setSelectedProduct(product: IProduct): void;
-  clearSelectedProduct(): void;
-}
-```
+**Методы класса:**
+- `setProducts(products: IProduct[]): void` - устанавливает список товаров
+- `getProducts(): IProduct[]` - возвращает список всех товаров
+- `getProductById(id: string): IProduct | undefined` - возвращает товар по идентификатору
+- `setSelectedProduct(product: IProduct): void` - устанавливает выбранный товар для детального просмотра
+- `clearSelectedProduct(): void` - очищает выбранный товар
 
 ### **Basket**
 
 Модель корзины пользователя. Управляет добавлением, удалением и подсчётом товаров.
 
-```ts
-class Basket {
-  private items: IProduct[] = [];
+**Поля класса:**
+- `private items: IProduct[] = []` - массив товаров в корзине
 
-  getItems(): IProduct[];
-  addItem(product: IProduct): void;
-  removeItem(productId: string): void;
-  clear(): void;
-  getTotalPrice(): number;
-  getItemCount(): number;
-  hasItem(productId: string): boolean;
-}
-```
+**Методы класса:**
+- `getItems(): IProduct[]` - возвращает список товаров в корзине
+- `addItem(product: IProduct): void` - добавляет товар в корзину
+- `removeItem(productId: string): void` - удаляет товар из корзины по идентификатору
+- `clear(): void` - полностью очищает корзину
+- `getTotalPrice(): number` - вычисляет общую стоимость товаров в корзине
+- `getItemCount(): number` - возвращает количество товаров в корзине
+- `hasItem(productId: string): boolean` - проверяет наличие товара в корзине
 
 ### **Buyer**
 
 Хранит и валидирует данные покупателя. Генерирует события при изменении полей.
 
-```ts
-class Buyer {
-  private payment: TPayment | null;
-  private email: string;
-  private phone: string;
-  private address: string;
+**Поля класса:**
+- `private payment: TPayment | null` - способ оплаты
+- `private email: string` - email покупателя
+- `private phone: string` - телефон покупателя
+- `private address: string` - адрес доставки
 
-  setPayment(payment: TPayment): void;
-  setEmail(email: string): void;
-  setPhone(phone: string): void;
-  setAddress(address: string): void;
-  getData(): IBuyer;
-  validate(): Partial<Record<keyof IBuyer, string>>;
-  clear(): void;
-}
-```
+**Методы класса:**
+- `setPayment(payment: TPayment): void` - устанавливает способ оплаты
+- `setEmail(email: string): void` - устанавливает email
+- `setPhone(phone: string): void` - устанавливает телефон
+- `setAddress(address: string): void` - устанавливает адрес
+- `getData(): IBuyer` - возвращает все данные покупателя
+- `validate(): Partial<Record<keyof IBuyer, string>>` - валидирует данные и возвращает объект с ошибками
+- `clear(): void` - очищает все данные покупателя
 
 ### **ServerService**
 
 Слой взаимодействия с сервером через `Api`.
 
-```ts
-class ServerService {
-  constructor(private api: IApi) {}
-
-  fetchProducts(): Promise<IProduct[]>;
-  sendOrder(order: TOrder): Promise<{ total: number }>;
-}
+**Конструктор:**
+```typescript
+constructor(private api: IApi)
 ```
+- `api` - экземпляр класса Api для выполнения запросов
 
----
+**Методы класса:**
+- `fetchProducts(): Promise<IProduct[]>` - загружает список товаров с сервера
+- `sendOrder(order: TOrder): Promise<{ total: number }>` - отправляет заказ на сервер и возвращает информацию о заказе
 
 ## Представления (Views)
+
 ### **BaseCard**
+
 Базовый класс карточки товара. Используется наследниками для разных контекстов.
 
-```ts
-class BaseCard {
-  render(data: IProduct): HTMLElement;
-  setText(element: HTMLElement, text: string): void;
-  setImage(element: HTMLImageElement, src: string, alt?: string): void;
-}
-```
+**Методы класса:**
+- `render(data: IProduct): HTMLElement` - отображает карточку товара с переданными данными
+- `setText(element: HTMLElement, text: string): void` - устанавливает текстовое содержимое элемента
+- `setImage(element: HTMLImageElement, src: string, alt?: string): void` - устанавливает изображение для элемента
 
 #### **CardForCatalog**
 
-Карточка в каталоге. Генерирует событие `product:select` при клике.
+Карточка товара в каталоге. Наследуется от `BaseCard`.
+
+**События:**
+- `product:select` - генерируется при клике на карточку для выбора товара
 
 #### **CardForPreview**
 
-Карточка в модальном окне предпросмотра. Добавляет описание и кнопку «В корзину» (`product:submit`).
+Карточка товара в модальном окне предпросмотра. Наследуется от `BaseCard`. Добавляет описание товара и кнопку «В корзину».
+
+**События:**
+- `product:submit` - генерируется при нажатии кнопки добавления в корзину
 
 #### **CardForBasket**
 
-Карточка в корзине. Отображает порядковый номер и кнопку удаления (`product:delete`).
+Карточка товара в корзине. Наследуется от `BaseCard`. Отображает порядковый номер товара и кнопку удаления.
 
----
+**События:**
+- `product:delete` - генерируется при нажатии кнопки удаления из корзины
 
 ### **Modal**
 
-Модальное окно для отображения карточек, корзины и форм.
+Модальное окно для отображения карточек товаров, корзины и форм.
 
-```ts
-class Modal {
-  open(content: HTMLElement): void;
-  close(): void;
-  setContent(content: HTMLElement): void;
-}
-```
+**Методы класса:**
+- `open(content: HTMLElement): void` - открывает модальное окно с переданным содержимым
+- `close(): void` - закрывает модальное окно
+- `setContent(content: HTMLElement): void` - устанавливает содержимое модального окна
 
-Событие: `modal:close`.
-
----
+**События:**
+- `modal:close` - генерируется при закрытии модального окна
 
 ### **GalleryView**
 
-Выводит карточки товаров на главной странице.
+Отображает карточки товаров на главной странице.
 
-```ts
-class GalleryView {
-  set galleryList(cards: HTMLElement[]): void;
-  clear(): void;
-}
-```
+**Свойства класса:**
+- `set galleryList(cards: HTMLElement[]): void` - устанавливает список карточек для отображения в галерее
 
----
+**Методы класса:**
+- `clear(): void` - очищает галерею
 
 ### **BasketView**
 
 Отображает содержимое корзины и итоговую сумму.
 
-События:
-
-* `basket:open` — открыть корзину
-* `basket:listChange` — обновление списка
-* `basket:placeOrder` — переход к оформлению заказа
-
----
+**События:**
+- `basket:open` - открытие корзины
+- `basket:listChange` - обновление списка товаров в корзине
+- `basket:placeOrder` - переход к оформлению заказа
 
 ### **FormOrderView**
 
-Первый шаг оформления заказа — выбор способа оплаты и адреса.
+Первый шаг оформления заказа — выбор способа оплаты и адреса доставки.
 
-CSS-модификатор:
-`.button_alt-active` — активная кнопка выбора оплаты.
+**CSS-модификатор:**
+- `.button_alt-active` - класс для активной кнопки выбора способа оплаты
 
-События:
-
-* `payment:changed`
-* `address:changed`
-* `form:order:submit`
-
----
+**События:**
+- `payment:changed` - изменение способа оплаты
+- `address:changed` - изменение адреса доставки
+- `form:order:submit` - отправка формы заказа
 
 ### **FormContactsView**
 
-Второй шаг — ввод контактных данных.
+Второй шаг оформления заказа — ввод контактных данных покупателя.
 
-События:
-
-* `form:email:changed`
-* `form:phone:changed`
-* `form:contacts:submit`
-
----
+**События:**
+- `form:email:changed` - изменение email
+- `form:phone:changed` - изменение телефона
+- `form:contacts:submit` - отправка контактной формы
 
 ### **SuccessView**
 
-Отображает сообщение об успешной покупке и сумму заказа.
-Событие `success:click` возвращает пользователя в каталог.
+Отображает сообщение об успешном оформлении заказа и сумму заказа.
 
----
+**События:**
+- `success:click` - возвращает пользователя в каталог после завершения заказа
 
 ## Событийная модель
 
 Все взаимодействие между компонентами осуществляется через экземпляр `EventEmitter`.
 
-| Событие                | Описание                                |
-| ---------------------- | --------------------------------------- |
-| `products:change`      | Загрузка списка товаров                 |
-| `product:select`       | Выбор товара из каталога                |
-| `product:selected:set` | Открытие карточки предпросмотра         |
-| `product:submit`       | Добавление / удаление товара из корзины |
-| `basket:open`          | Открытие корзины                        |
-| `basket:listChange`    | Обновление содержимого корзины          |
-| `basket:placeOrder`    | Переход к оформлению заказа             |
-| `payment:changed`      | Изменение способа оплаты                |
-| `address:changed`      | Изменение адреса                        |
-| `form:order:submit`    | Отправка формы оплаты                   |
-| `form:contacts:submit` | Отправка контактной формы               |
-| `modal:close`          | Закрытие модального окна                |
-| `success:click`        | Завершение оформления заказа            |
-
----
+| Событие | Описание |
+|---------|-----------|
+| `products:change` | Загрузка списка товаров |
+| `product:select` | Выбор товара из каталога |
+| `product:selected:set` | Открытие карточки предпросмотра |
+| `product:submit` | Добавление / удаление товара из корзины |
+| `basket:open` | Открытие корзины |
+| `basket:listChange` | Обновление содержимого корзины |
+| `basket:placeOrder` | Переход к оформлению заказа |
+| `payment:changed` | Изменение способа оплаты |
+| `address:changed` | Изменение адреса доставки |
+| `form:order:submit` | Отправка формы оплаты и адреса |
+| `form:contacts:submit` | Отправка контактной формы |
+| `modal:close` | Закрытие модального окна |
+| `success:click` | Завершение оформления заказа |
 
 ## Логика main.ts
 
-`main.ts` объединяет все компоненты:
+`main.ts` объединяет все компоненты приложения:
 
-1. Инициализирует модели (`Products`, `Basket`, `Buyer`, `ServerService`);
-2. Создаёт представления и связывает их с шаблонами (`<template>` в HTML);
-3. Подписывается на события через `EventEmitter`;
-4. Управляет модальными окнами и многошаговой формой заказа.
-
----
+1. Инициализирует модели (`Products`, `Basket`, `Buyer`, `ServerService`)
+2. Создаёт представления и связывает их с шаблонами (`<template>` в HTML)
+3. Подписывается на события через `EventEmitter`
+4. Управляет модальными окнами и многошаговой формой заказа
 
 ## Используемые технологии
 
-* **TypeScript** — строгая типизация и ООП
-* **HTML шаблоны (`<template>`)**
-* **SCSS** — стилизация компонентов
-* **Vite** — сборка проекта
-* **MVP-архитектура** — разделение логики, данных и представления
-* **EventEmitter** — централизованная событийная шина
-
----
+- **TypeScript** — строгая типизация и ООП
+- **HTML шаблоны (`<template>`)** — для создания компонентов
+- **SCSS** — стилизация компонентов
+- **Vite** — сборка проекта
+- **MVP-архитектура** — разделение логики, данных и представления
+- **EventEmitter** — централизованная событийная шина
 
 ## Структура проекта
 

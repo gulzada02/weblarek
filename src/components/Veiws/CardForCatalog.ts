@@ -23,7 +23,7 @@ export class CardForCatalog extends BaseCard {
   set image(src: string){
     this.setImage(
       this._image, CDN_URL + `${src.slice(0, -3)+'png'}`,
-      this._title.textContent
+     String(this._title.textContent) 
     )
   }
 

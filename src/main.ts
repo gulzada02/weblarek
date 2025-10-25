@@ -9,11 +9,8 @@ import { Products } from './components/Models/Products';
 import { Basket } from './components/Models/Basket';
 import { Buyer } from './components/Models/Buyer';
 import { IProduct, TOrder, TPayment } from './types';
-import { Api} from './components/base/Api';
+import { Api } from './components/base/Api';
 import { ServerService } from './components/Models/ServerService';
-
-const baseApi = new Api(API_URL);
-const serverService = new ServerService(baseApi);
 
 import { GalleryView } from './components/Veiws/GalleryView';
 import { Modal } from './components/Veiws/Modal';
@@ -50,10 +47,12 @@ const successView = new SuccessView(cloneTemplate(successTemplate), events);
 const formOrderView = new FormOrderView(cloneTemplate(formOrderTemplate), events);
 const formContactsView = new FormContactsView(cloneTemplate(formContactsTemplate), events);
 
+const baseApi = new Api(API_URL);
+const serverService = new ServerService(baseApi);
+
 serverService.fetchProducts()
   .then((products: IProduct[]) => {
     productsModel.setProducts(products);
-    console.log(productsModel.getProducts());
   })
   .catch((err: unknown) => console.error('Не удалось загрузить товары: ', err));
 
@@ -73,22 +72,16 @@ events.on('product:select', (data: { id: string }) => {
 });
 
 events.on('product:selected:set', (product: IProduct) => {
-  const card = new CardForPreview(cloneTemplate(cardForPreviewTemplate), events)
+  const card = new CardForPreview(cloneTemplate(cardForPreviewTemplate), events);
 
-  if (product && product.price === null) {
-    card.toggleButtonState(false);
-  } else if (product && basketModel.hasItem(product.id)) {
-    card.buttonText = 'Удалить из корзины';
-  } else {
-    card.buttonText = 'В корзину';
-  }
+  if (product.price === null) card.toggleButtonState(false);
+  else if (basketModel.hasItem(product.id)) card.buttonText = 'Удалить из корзины';
+  else card.buttonText = 'В корзину';
 
-  if (product.category) {
-    card.categoryValue = product.category as keyof typeof categoryMap;
-  }
+  if (product.category) card.categoryValue = product.category as keyof typeof categoryMap;
 
-  modal.open(card.render(product))
-})
+  modal.open(card.render(product));
+});
 
 events.on('product:submit', (data: { id: string }) => {
   const product = productsModel.getProductById(data.id);
@@ -110,7 +103,6 @@ events.on('basket:listChange', (data: { items: IProduct[], totalPrice: number, c
   const cards = data.items.map((product: IProduct, index: number) => {
     const card = new CardForBasket(cloneTemplate(cardForBasketTemplate), events);
     card.index = index + 1;
-
     return card.render(product);
   });
 
@@ -122,7 +114,7 @@ events.on('basket:listChange', (data: { items: IProduct[], totalPrice: number, c
 });
 
 events.on('product:delete', (data: { id: string }) => {
-  const product = productsModel.getProductById(data.id)
+  const product = productsModel.getProductById(data.id);
   if(product) basketModel.removeItem(product.id);
 });
 
@@ -130,13 +122,13 @@ events.on('basket:placeOrder', () => {
   modal.setContent(formOrderView.render());
 });
 
-//forms
+// Формы и валидация через buyerModel.validate() 
 events.on('payment:changed', (data: { payment: TPayment }) => {
-  buyerModel.setPayment(data.payment)
+  buyerModel.setPayment(data.payment);
 });
 
 events.on('address:changed', (data: { address: string }) => {
-  buyerModel.setAddress(data.address)
+  buyerModel.setAddress(data.address);
 });
 
 events.on('form:email:changed', (data: { email: string }) => {
@@ -147,27 +139,45 @@ events.on('form:phone:changed', (data: { phone: string }) => {
   buyerModel.setPhone(data.phone);
 });
 
-events.on('buyer:change', (data: { field: string})  => {
-  const payment = buyerModel.getData().payment
-  const errors = buyerModel.validate()
+events.on('buyer:change', (data: { field: string }) => {
+  const payment = buyerModel.getData().payment;
+  const errors = buyerModel.validate();
 
   if (data.field === 'payment' || data.field === 'address') {
-    const isValid = formOrderView.checkIsFormValid(errors)
-    formOrderView.toggleSubmitButton(isValid)
-    formOrderView.toggleErrors(!isValid)
-    formOrderView.togglePaymentButtonStatus(payment)
+    const isValid = formOrderView.checkIsFormValid(errors);
+    formOrderView.toggleSubmitButton(isValid);
+    formOrderView.toggleErrors(!isValid);
+    formOrderView.togglePaymentButtonStatus(payment);
   } else if (data.field === 'email' || data.field === 'phone') {
-    const isValid = formContactsView.checkIsFormValid(errors)
-    formContactsView.toggleSubmitButton(isValid)
-    formContactsView.toggleErrors(!isValid)
+    const isFormValid = formContactsView.checkIsFormValid(errors); 
+    formContactsView.toggleSubmitButton(isFormValid);
+    formContactsView.toggleErrors(!isFormValid);
   }
 });
 
+
+// Сабмит формы заказа
 events.on('form:order:submit', () => {
-  modal.setContent(formContactsView.render())
+  const errors = buyerModel.validate();
+  const isValid = formOrderView.checkIsFormValid(errors);
+
+  if (isValid) {
+    modal.setContent(formContactsView.render());
+  } else {
+    formOrderView.toggleErrors(true);
+  }
 });
 
+// Сабмит формы контактов
 events.on('form:contacts:submit', () => {
+  const errors = buyerModel.validate();
+  const isValid = formContactsView.checkIsFormValid(errors);
+
+  if (!isValid) {
+    formContactsView.toggleErrors(true);
+    return;
+  }
+
   const buyerData = buyerModel.getData();
   const items = basketModel.getItems();
 
@@ -185,19 +195,16 @@ events.on('form:contacts:submit', () => {
       basketModel.clear();
       buyerModel.clear();
       headerView.counter = basketModel.getItemCount();
-      successView.totalPrice = data.total
+      successView.totalPrice = data.total;
       modal.setContent(successView.render());
       formOrderView.resetFormState();
       formContactsView.resetFormState();
     })
     .catch((err: unknown) => console.error('Не удалось разместить заказ: ', err));
-})
-
-events.on('modal:close', () => {
-  productsModel.clearSelectedProduct()
-  modal.close();
 });
 
-events.on('success:click', () => modal.close())
+events.on('modal:close', () => {
+  productsModel.clearSelectedProduct();
+});
 
-
+events.on('success:click', () => modal.close());
